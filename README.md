@@ -197,4 +197,4 @@ OPENAI_MODEL=gpt-5.4-mini
 ## Links
 
 - GitHub: https://github.com/witharthur/laboratory_networks
-- Vercel: будет добавлен после production deployment
+- Vercel: https://laboratorynetworks.vercel.app
