@@ -58,6 +58,16 @@ function buildCopyText(data: ContactRequest) {
   ].join("\n");
 }
 
+function isResendDomainVerificationError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string" &&
+    error.message.includes("You can only send testing emails to your own email address")
+  );
+}
+
 export async function sendContactEmails(data: ContactRequest) {
   if (!isEmailConfigured()) {
     throw new AppError(
@@ -80,9 +90,22 @@ export async function sendContactEmails(data: ContactRequest) {
     });
 
     if (ownerEmail.error) {
+      if (isResendDomainVerificationError(ownerEmail.error)) {
+        throw new AppError(
+          503,
+          "Email service is in Resend testing mode. Verify a sending domain in Resend to deliver owner notifications.",
+          "RESEND_DOMAIN_NOT_VERIFIED",
+          ownerEmail.error
+        );
+      }
+
       throw ownerEmail.error;
     }
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     throw new AppError(
       502,
       "Email provider did not accept the owner notification. Please try again later.",

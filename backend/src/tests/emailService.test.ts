@@ -76,6 +76,23 @@ describe("email service", () => {
     expect(resendMocks.send).toHaveBeenCalledTimes(1);
   });
 
+  it("returns a setup error for Resend testing mode recipient restrictions", async () => {
+    resendMocks.send.mockResolvedValueOnce({
+      data: null,
+      error: new Error(
+        "You can only send testing emails to your own email address (darb4293@gmail.com)."
+      )
+    });
+
+    await expect(sendContactEmails(payload)).rejects.toMatchObject({
+      statusCode: 503,
+      code: "RESEND_DOMAIN_NOT_VERIFIED",
+      message:
+        "Email service is in Resend testing mode. Verify a sending domain in Resend to deliver owner notifications."
+    });
+    expect(resendMocks.send).toHaveBeenCalledTimes(1);
+  });
+
   it("throws a safe error when email configuration is missing", async () => {
     env.RESEND_API_KEY = "";
     env.OWNER_EMAIL = "";

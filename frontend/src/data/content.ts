@@ -95,6 +95,7 @@ export type LocalizedContent = {
       comment: string;
       form: string;
       fallback: string;
+      emailServiceSetup: string;
     };
     successCopySent: string;
     successCopyFailed: string;
@@ -334,7 +335,9 @@ export const content: Record<Locale, LocalizedContent> = {
         email: "Введите корректный email.",
         comment: "Введите минимум 10 символов.",
         form: "Проверьте выделенные поля.",
-        fallback: "Сообщение не удалось отправить. Попробуйте позже."
+        fallback: "Сообщение не удалось отправить. Попробуйте позже.",
+        emailServiceSetup:
+          "Resend сейчас работает в тестовом режиме и не может отправить письмо на этот email. Напишите напрямую на arthurdadalian@gmail.com или настройте verified domain в Resend."
       },
       successCopySent:
         "Спасибо! Сообщение отправлено Arthur Dadalian. Копия отправлена на ваш email.",
@@ -572,7 +575,9 @@ export const content: Record<Locale, LocalizedContent> = {
         email: "Please enter a valid email address.",
         comment: "Please enter at least 10 characters.",
         form: "Please fix the highlighted fields.",
-        fallback: "Message could not be sent. Please try again later."
+        fallback: "Message could not be sent. Please try again later.",
+        emailServiceSetup:
+          "Resend is currently in testing mode and cannot send to this owner email. Please email arthurdadalian@gmail.com directly or configure a verified domain in Resend."
       },
       successCopySent: "Thanks! Your message has been sent to Arthur. A copy was sent to your email.",
       successCopyFailed:

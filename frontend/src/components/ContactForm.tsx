@@ -101,7 +101,9 @@ export function ContactForm({ content }: ContactFormProps) {
       setStatus("error");
       setMessage(
         error instanceof ApiError
-          ? error.message
+          ? error.code === "RESEND_DOMAIN_NOT_VERIFIED"
+            ? content.errors.emailServiceSetup
+            : error.message
           : content.errors.fallback
       );
     }

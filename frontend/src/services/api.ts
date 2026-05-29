@@ -29,17 +29,20 @@ export type AiSummaryPayload = {
 type ApiErrorPayload = {
   success?: false;
   message?: string;
+  code?: string;
   errors?: Record<string, string[]>;
 };
 
 export class ApiError extends Error {
   status?: number;
+  code?: string;
   errors?: Record<string, string[]>;
 
-  constructor(message: string, status?: number, errors?: Record<string, string[]>) {
+  constructor(message: string, status?: number, code?: string, errors?: Record<string, string[]>) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
     this.errors = errors;
   }
 }
@@ -65,6 +68,7 @@ async function postJson<TResponse, TPayload>(path: string, payload: TPayload): P
     throw new ApiError(
       data.message ?? "Request failed. Please check the form and try again.",
       response.status,
+      data.code,
       data.errors
     );
   }
