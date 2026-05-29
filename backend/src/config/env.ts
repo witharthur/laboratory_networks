@@ -20,7 +20,13 @@ function numberFromEnv(value: string | undefined, fallback: number) {
 }
 
 function stringFromEnv(value: string | undefined, fallback = "") {
-  return value?.trim() || fallback;
+  const normalized = value?.trim();
+
+  if (!normalized || normalized === "\"\"" || normalized === "''") {
+    return fallback;
+  }
+
+  return normalized;
 }
 
 export const env = {
