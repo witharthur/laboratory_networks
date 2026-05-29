@@ -162,8 +162,8 @@ export const cases: DetailItem[] = [
 ];
 
 export const contactLinks = [
-  { label: "Email", value: "arthur@example.com", href: "mailto:arthur@example.com" },
-  { label: "Phone", value: "+374 00 000 000", href: "tel:+37400000000" },
+  { label: "Email", value: "arthurdadalian@gmail.com", href: "mailto:arthur@example.com" },
+  { label: "Phone", value: "+374 98 455 949", href: "tel:+37400000000" },
   { label: "Location", value: "Yerevan, Armenia", href: "https://maps.google.com/?q=Yerevan" }
 ];
 
