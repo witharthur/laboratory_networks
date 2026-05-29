@@ -1,5 +1,5 @@
-import nodemailer from "nodemailer";
-import { env, isSmtpConfigured } from "../config/env.js";
+import { Resend } from "resend";
+import { env, isEmailConfigured } from "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 import type { ContactRequest } from "../utils/validation.js";
 
@@ -54,47 +54,43 @@ function buildCopyText(data: ContactRequest) {
 }
 
 export async function sendContactEmails(data: ContactRequest) {
-  if (!isSmtpConfigured()) {
+  if (!isEmailConfigured()) {
     throw new AppError(
       503,
       "Email service is not configured yet. Please try again later.",
-      "SMTP_CONFIG_MISSING"
+      "RESEND_CONFIG_MISSING"
     );
   }
 
-  const transporter = nodemailer.createTransport({
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT,
-    secure: env.SMTP_PORT === 465,
-    auth: {
-      user: env.SMTP_USER,
-      pass: env.SMTP_PASS
-    }
-  });
+  const resend = new Resend(env.RESEND_API_KEY);
 
   try {
-    await Promise.all([
-      transporter.sendMail({
-        from: `"Arthur Dadalian Landing" <${env.SMTP_USER}>`,
+    const [ownerEmail, senderCopy] = await Promise.all([
+      resend.emails.send({
+        from: `Arthur Dadalian Landing <${env.RESEND_FROM_EMAIL}>`,
         to: env.OWNER_EMAIL,
         replyTo: data.email,
         subject: `New contact request from ${data.name}`,
         text: buildOwnerText(data),
         html: buildOwnerHtml(data)
       }),
-      transporter.sendMail({
-        from: `"Arthur Dadalian" <${env.SMTP_USER}>`,
+      resend.emails.send({
+        from: `Arthur Dadalian <${env.RESEND_FROM_EMAIL}>`,
         to: data.email,
         subject: "Copy of your message to Arthur Dadalian",
         text: buildCopyText(data),
         html: buildCopyHtml(data)
       })
     ]);
+
+    if (ownerEmail.error || senderCopy.error) {
+      throw ownerEmail.error ?? senderCopy.error;
+    }
   } catch (error) {
     throw new AppError(
       502,
       "Email provider did not accept the message. Please try again later.",
-      "SMTP_SEND_FAILED",
+      "RESEND_SEND_FAILED",
       error
     );
   }

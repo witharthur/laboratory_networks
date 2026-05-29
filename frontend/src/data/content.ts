@@ -41,7 +41,7 @@ export const techStack = [
   {
     group: "Backend",
     icon: Server,
-    items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Nodemailer"]
+    items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Resend"]
   },
   {
     group: "Tools and AI",
@@ -140,7 +140,7 @@ export const aiUsage: DetailItem[] = [
 export const cases: DetailItem[] = [
   {
     title: "Contact flow with email copies",
-    meta: "Express + Nodemailer",
+    meta: "Express + Resend",
     description:
       "A complete feedback form that validates data, calls the backend, sends an owner email, sends a copy to the user, and handles failures clearly.",
     icon: ShieldCheck
