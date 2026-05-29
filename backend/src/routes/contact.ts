@@ -20,7 +20,7 @@ contactRouter.post("/", async (req, res, next) => {
     await sendContactEmails(parsed.data);
     res.status(200).json({
       success: true,
-      message: "Thanks! Your message has been sent."
+      message: "Thanks! Your message has been sent. A copy was sent to your email."
     });
   } catch (error) {
     next(error);

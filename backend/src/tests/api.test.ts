@@ -37,7 +37,7 @@ describe("contact API", () => {
 
     expect(response.body).toMatchObject({
       success: true,
-      message: "Thanks! Your message has been sent."
+      message: "Thanks! Your message has been sent. A copy was sent to your email."
     });
     expect(sendContactEmails).toHaveBeenCalledWith(validPayload);
   });
