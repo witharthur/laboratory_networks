@@ -1,5 +1,4 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
-import { env } from "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 
 type HttpParserError = Error & {
@@ -27,10 +26,6 @@ export const notFoundHandler: RequestHandler = (_req, res) => {
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   if (error instanceof AppError) {
-    if (env.NODE_ENV !== "test") {
-      console.error(`[${error.code}]`, error.message);
-    }
-
     res.status(error.statusCode).json({
       success: false,
       message: error.message,
@@ -46,10 +41,6 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
       code: "INVALID_JSON"
     });
     return;
-  }
-
-  if (env.NODE_ENV !== "test") {
-    console.error(error);
   }
 
   res.status(500).json({

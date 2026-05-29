@@ -10,7 +10,7 @@ aiSummaryRouter.post("/", async (req, res, next) => {
   if (!parsed.success) {
     res.status(400).json({
       success: false,
-      message: "Text is too long. Please shorten it and try again.",
+      message: "Please check the AI summary input and try again.",
       errors: formatZodErrors(parsed.error)
     });
     return;

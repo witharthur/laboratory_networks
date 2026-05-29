@@ -64,4 +64,16 @@ describe("email service", () => {
       message: "Email provider did not accept the message. Please try again later."
     });
   });
+
+  it("throws a safe error when email configuration is missing", async () => {
+    env.RESEND_API_KEY = "";
+    env.OWNER_EMAIL = "";
+
+    await expect(sendContactEmails(payload)).rejects.toMatchObject({
+      statusCode: 503,
+      code: "RESEND_CONFIG_MISSING",
+      message: "Email service is not configured yet. Please try again later."
+    });
+    expect(resendMocks.send).not.toHaveBeenCalled();
+  });
 });

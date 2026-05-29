@@ -1,23 +1,32 @@
 # Laboratory Networks
 
-Персональная landing page-презентация frontend/full-stack разработчика Arthur Dadalian. Проект подготовлен как тестовое задание: есть адаптивный React-интерфейс, Express API, рабочий feedback flow, отправка писем через Resend, AI helper и конфигурация для деплоя на Vercel.
+Персональная landing page-презентация frontend/full-stack разработчика Arthur Dadalian. Проект сделан как тестовое задание: адаптивный React-интерфейс, Express API, рабочая feedback-форма, отправка писем через Resend, AI Summary Studio и конфигурация для деплоя на Vercel.
+
+## Возможности
+
+- Современная адаптивная landing page с секциями Hero, About, Tech stack, Experience, AI tools, Projects, Contacts и Feedback form.
+- Семантическая HTML-структура, доступные поля формы, состояния loading/success/error.
+- Реальная отправка формы на `POST /api/contact`.
+- Два email после успешной отправки: владельцу сайта и копия пользователю.
+- AI Summary Studio на `POST /api/ai-summary` с OpenAI при наличии ключа и безопасным fallback без ключа.
+- Минимальные backend-тесты для API, валидации и email-сервиса.
 
 ## Стек
 
-- Frontend: React, TypeScript, Vite, SCSS, Lucide React
-- Backend: Node.js, Express, TypeScript
-- API: `POST /api/contact`, `POST /api/ai-summary`, `GET /api/health`
-- Валидация: Zod на backend и клиентская проверка на frontend
-- Email: Resend
-- AI: OpenAI SDK при наличии `OPENAI_API_KEY`, безопасный fallback без ключа
-- Проверки: TypeScript, ESLint, Vitest, Supertest, production build
+- Frontend: React, TypeScript, Vite, SCSS, Lucide React.
+- Backend: Node.js, Express, TypeScript.
+- Validation: Zod на backend и клиентская проверка на frontend.
+- Email: Resend.
+- AI: OpenAI SDK, Responses API, fallback summary.
+- Quality: TypeScript, ESLint, Vitest, Supertest, production build.
+- Deployment: Vercel, serverless bridge для Express API.
 
 ## Структура проекта
 
 ```text
 project/
   api/
-    index.ts              # Vercel serverless bridge to Express app
+    index.ts
   frontend/
     public/
     src/
@@ -44,15 +53,39 @@ project/
 npm install
 ```
 
-## Запуск локально
+## Переменные окружения
 
-Одновременно frontend и backend:
+Секреты нельзя коммитить. Для локальной разработки можно использовать `.env` в корне или `backend/.env`; для frontend можно создать `frontend/.env`.
+
+Backend:
+
+```env
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=verified-sender@example.com
+OWNER_EMAIL=owner@example.com
+CLIENT_URL=http://localhost:5173
+PORT=5000
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4.1-mini
+```
+
+Frontend:
+
+```env
+VITE_API_URL=
+```
+
+Если `VITE_API_URL` пустой, frontend отправляет запросы на относительные пути `/api/...`. Локально это работает через Vite proxy, на Vercel через serverless route.
+
+## Локальная разработка
+
+Запуск frontend и backend вместе:
 
 ```bash
 npm run dev
 ```
 
-Отдельно:
+Отдельный запуск:
 
 ```bash
 npm run dev:frontend
@@ -63,106 +96,9 @@ npm run dev:backend
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:5000`
+- Health check: `GET http://localhost:5000/api/health`
 
-Vite проксирует `/api` на backend, поэтому frontend может работать с относительными API-путями.
-
-## Переменные окружения
-
-Backend: скопируйте `backend/.env.example` в `backend/.env` или используйте `.env` в корне.
-
-```env
-RESEND_API_KEY=
-RESEND_FROM_EMAIL=onboarding@resend.dev
-OWNER_EMAIL=darb4293@gmail.com
-CLIENT_URL=http://localhost:5173
-PORT=5000
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-5.4-mini
-```
-
-Frontend: скопируйте `frontend/.env.example` в `frontend/.env`.
-
-```env
-VITE_API_URL=
-```
-
-Если `VITE_API_URL` пустой, frontend отправляет запросы на тот же домен (`/api/...`). Для локального запуска это работает через Vite proxy, для Vercel - через serverless API.
-
-Реальные `.env` файлы и секреты не должны попадать в git.
-
-## Как работает feedback form
-
-Форма содержит поля `name`, `phone`, `email`, `comment`.
-
-Поток:
-
-1. Frontend проверяет обязательные поля, формат email, телефон и длину комментария.
-2. При отправке показывает loading state и вызывает `POST /api/contact`.
-3. Backend повторно валидирует body через Zod.
-4. Resend отправляет письмо владельцу сайта на `OWNER_EMAIL`.
-5. Resend отправляет copy email пользователю на email, который он указал в форме.
-6. API возвращает понятный JSON.
-7. Frontend показывает success или user-friendly error и очищает форму после успеха.
-
-Если `RESEND_API_KEY` не настроен, API возвращает `503` с безопасным сообщением и не раскрывает секреты.
-
-## Как работает AI helper
-
-Блок AI Summary Studio отправляет текст и выбранную цель summary в `POST /api/ai-summary`.
-
-Доступные режимы:
-
-- `Portfolio`
-- `Recruiter`
-- `Project`
-- `LinkedIn`
-
-Если `OPENAI_API_KEY` задан:
-
-- backend использует официальный OpenAI SDK;
-- вызывается Responses API;
-- модель берется из `OPENAI_MODEL` или `gpt-5.4-mini`.
-
-Если ключа нет или OpenAI временно недоступен:
-
-- endpoint не падает;
-- возвращается fallback summary;
-- frontend показывает нормальный success flow.
-
-Frontend показывает loading state, success state, fallback/source badge и кнопку копирования результата.
-
-## AI tools usage
-
-Во время разработки AI использовался для:
-
-- ускорения проектирования структуры frontend/backend;
-- генерации черновиков компонентов и API-сервисов;
-- подготовки hero-изображения для первого экрана;
-- улучшения README и deployment notes;
-- поиска потенциальных ошибок в form/API flow.
-
-Что было сгенерировано с AI:
-
-- базовая структура монорепозитория;
-- React-компоненты landing page;
-- Express route/service слой;
-- SCSS-анимации и responsive layout;
-- hero asset `frontend/public/hero-workspace.png`;
-- черновик документации.
-
-Что проверено и исправлено вручную:
-
-- TypeScript ошибки;
-- build ошибки;
-- корректность API путей;
-- frontend/backend env usage;
-- обработка Resend ошибок;
-- fallback для AI без ключа;
-- client и server validation;
-- доступность labels, aria-атрибутов и disabled/loading states;
-- Vercel deployment strategy.
-
-## Проверки качества
+## Сборка и проверки
 
 ```bash
 npm run type-check
@@ -171,11 +107,61 @@ npm test
 npm run build
 ```
 
-Или все вместе:
+Полная проверка одной командой:
 
 ```bash
 npm run check
 ```
+
+## Как работает feedback form
+
+Форма содержит поля `name`, `phone`, `email`, `comment`.
+
+1. Frontend валидирует обязательные поля, формат email, телефон и длину комментария.
+2. При отправке показывается loading state и вызывается `POST /api/contact`.
+3. Backend повторно валидирует body через Zod.
+4. Resend отправляет письмо владельцу сайта на `OWNER_EMAIL`.
+5. Resend отправляет копию пользователю на email из формы.
+6. API возвращает понятный JSON.
+7. Frontend показывает success/error state и очищает форму после успешной отправки.
+
+Если email-сервис не настроен, API возвращает `503` с безопасным сообщением без раскрытия секретов.
+
+## Как работает AI Summary Studio
+
+Frontend-блок отправляет текст профиля и выбранную цель summary в `POST /api/ai-summary`.
+
+Доступные режимы:
+
+- `portfolio`
+- `recruiter`
+- `project`
+- `linkedin`
+
+Если `OPENAI_API_KEY` задан, backend использует официальный OpenAI SDK и модель из `OPENAI_MODEL`. Если ключ отсутствует или провайдер недоступен, endpoint не падает и возвращает fallback summary с `source: "fallback"`.
+
+## AI tools usage
+
+Во время разработки AI использовался для ускорения проектирования структуры frontend/backend, генерации черновиков компонентов, API-сервисов, SCSS-анимаций, README и поиска потенциальных ошибок в form/API flow.
+
+С AI были подготовлены:
+
+- базовая структура монорепозитория;
+- React-компоненты landing page;
+- Express routes и service layer;
+- responsive layout и состояния интерфейса;
+- черновик документации.
+
+Вручную проверены и исправлены:
+
+- TypeScript и build ошибки;
+- корректность API-путей;
+- frontend/backend environment usage;
+- обработка ошибок Resend;
+- fallback для AI без ключа;
+- client/server validation;
+- доступность labels, aria-атрибутов и disabled/loading states;
+- Vercel deployment setup.
 
 ## Деплой на Vercel
 
@@ -186,18 +172,24 @@ npm run check
 - frontend использует относительные API-пути;
 - `vercel.json` находится в корне.
 
-Для production нужно добавить env variables в Vercel:
+Production env variables в Vercel:
 
 ```env
 RESEND_API_KEY=
-RESEND_FROM_EMAIL=onboarding@resend.dev
-OWNER_EMAIL=darb4293@gmail.com
+RESEND_FROM_EMAIL=verified-sender@example.com
+OWNER_EMAIL=owner@example.com
 CLIENT_URL=https://your-vercel-domain.vercel.app
 OPENAI_API_KEY=
-OPENAI_MODEL=gpt-5.4-mini
+OPENAI_MODEL=gpt-4.1-mini
 ```
 
-`OPENAI_API_KEY` необязателен. `RESEND_API_KEY` нужен для реальной отправки feedback emails. Для production лучше заменить `RESEND_FROM_EMAIL` на адрес подтвержденного домена в Resend.
+`OPENAI_API_KEY` необязателен. `RESEND_API_KEY`, `RESEND_FROM_EMAIL` и `OWNER_EMAIL` нужны для реальной отправки feedback emails. Для production лучше использовать подтвержденный домен в Resend.
+
+## Ограничения
+
+- Без настроенного Resend feedback API вернет `503`, потому что реальная отправка email невозможна.
+- Без валидного OpenAI key AI endpoint работает в fallback-режиме.
+- В проекте нет базы данных: заявки отправляются email-ом и не сохраняются.
 
 ## Links
 
