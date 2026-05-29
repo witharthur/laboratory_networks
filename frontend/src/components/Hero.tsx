@@ -15,7 +15,7 @@ export function Hero() {
           Portfolio landing page
         </p>
         <h1 id="hero-title">Arthur Dadalian</h1>
-        <p className="hero__role">Frontend / Full-Stack Developer</p>
+        <p className="hero__role">Full-Stack Developer</p>
         <p className="hero__text">
           I build reliable interfaces, connect them to typed APIs, and use AI tools where they make
           real product work faster and clearer.
