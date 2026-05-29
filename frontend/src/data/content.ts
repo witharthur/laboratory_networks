@@ -95,10 +95,8 @@ export type LocalizedContent = {
       comment: string;
       form: string;
       fallback: string;
-      emailServiceSetup: string;
     };
     successCopySent: string;
-    successCopyFailed: string;
     submit: string;
   };
   aiHelper: {
@@ -202,7 +200,7 @@ export const content: Record<Locale, LocalizedContent> = {
       {
         group: "Backend",
         icon: Server,
-        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Resend"]
+        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Nodemailer"]
       },
       {
         group: "Tools and AI",
@@ -296,9 +294,9 @@ export const content: Record<Locale, LocalizedContent> = {
     cases: [
       {
         title: "Contact flow with email copies",
-        meta: "Express + Resend",
+        meta: "Express + Gmail SMTP",
         description:
-          "Feedback form валидирует данные, вызывает backend, отправляет owner email, пробует отправить copy пользователю и понятно обрабатывает ошибки.",
+          "Feedback form валидирует данные, вызывает backend, отправляет owner email, отправляет copy пользователю и понятно обрабатывает ошибки.",
         icon: ShieldCheck
       },
       {
@@ -330,19 +328,15 @@ export const content: Record<Locale, LocalizedContent> = {
         comment: "Комментарий"
       },
       errors: {
-        name: "Введите минимум 2 символа.",
+        name: "Введите имя.",
         phone: "Введите корректный номер телефона.",
         email: "Введите корректный email.",
-        comment: "Введите минимум 10 символов.",
+        comment: "Введите комментарий.",
         form: "Проверьте выделенные поля.",
-        fallback: "Сообщение не удалось отправить. Попробуйте позже.",
-        emailServiceSetup:
-          "Resend сейчас работает в тестовом режиме и не может отправить письмо на этот email. Напишите напрямую на arthurdadalian@gmail.com или настройте verified domain в Resend."
+        fallback: "Сообщение не удалось отправить. Попробуйте позже."
       },
       successCopySent:
         "Спасибо! Сообщение отправлено Arthur Dadalian. Копия отправлена на ваш email.",
-      successCopyFailed:
-        "Спасибо! Сообщение отправлено Arthur Dadalian. Копию на ваш email доставить не удалось.",
       submit: "Отправить"
     },
     aiHelper: {
@@ -442,7 +436,7 @@ export const content: Record<Locale, LocalizedContent> = {
       {
         group: "Backend",
         icon: Server,
-        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Resend"]
+        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Nodemailer"]
       },
       {
         group: "Tools and AI",
@@ -536,9 +530,9 @@ export const content: Record<Locale, LocalizedContent> = {
     cases: [
       {
         title: "Contact flow with email copies",
-        meta: "Express + Resend",
+        meta: "Express + Gmail SMTP",
         description:
-          "A complete feedback form that validates data, calls the backend, sends an owner email, tries to send a copy to the user, and handles failures clearly.",
+          "A complete feedback form that validates data, calls the backend, sends an owner email, sends a copy to the user, and handles failures clearly.",
         icon: ShieldCheck
       },
       {
@@ -570,18 +564,14 @@ export const content: Record<Locale, LocalizedContent> = {
         comment: "Comment"
       },
       errors: {
-        name: "Please enter at least 2 characters.",
+        name: "Please enter your name.",
         phone: "Please enter a valid phone number.",
         email: "Please enter a valid email address.",
-        comment: "Please enter at least 10 characters.",
+        comment: "Please enter a comment.",
         form: "Please fix the highlighted fields.",
-        fallback: "Message could not be sent. Please try again later.",
-        emailServiceSetup:
-          "Resend is currently in testing mode and cannot send to this owner email. Please email arthurdadalian@gmail.com directly or configure a verified domain in Resend."
+        fallback: "Message could not be sent. Please try again later."
       },
       successCopySent: "Thanks! Your message has been sent to Arthur. A copy was sent to your email.",
-      successCopyFailed:
-        "Thanks! Your message has been sent to Arthur. A copy email could not be delivered.",
       submit: "Send message"
     },
     aiHelper: {

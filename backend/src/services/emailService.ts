@@ -1,12 +1,7 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { env, isEmailConfigured } from "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 import type { ContactRequest } from "../utils/validation.js";
-
-type ContactEmailResult = {
-  ownerSent: true;
-  copySent: boolean;
-};
 
 function escapeHtml(value: string) {
   return value
@@ -58,30 +53,26 @@ function buildCopyText(data: ContactRequest) {
   ].join("\n");
 }
 
-function isResendDomainVerificationError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "message" in error &&
-    typeof error.message === "string" &&
-    error.message.includes("You can only send testing emails to your own email address")
-  );
-}
-
 export async function sendContactEmails(data: ContactRequest) {
   if (!isEmailConfigured()) {
     throw new AppError(
       503,
-      "Email service is not configured yet. Please try again later.",
-      "RESEND_CONFIG_MISSING"
+      "Email service is not configured. Please try again later.",
+      "EMAIL_CONFIG_MISSING"
     );
   }
 
-  const resend = new Resend(env.RESEND_API_KEY);
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: env.EMAIL_USER,
+      pass: env.EMAIL_PASS
+    }
+  });
 
   try {
-    const ownerEmail = await resend.emails.send({
-      from: `Arthur Dadalian Landing <${env.RESEND_FROM_EMAIL}>`,
+    await transporter.sendMail({
+      from: env.EMAIL_USER,
       to: env.OWNER_EMAIL,
       replyTo: data.email,
       subject: `New contact request from ${data.name}`,
@@ -89,43 +80,19 @@ export async function sendContactEmails(data: ContactRequest) {
       html: buildOwnerHtml(data)
     });
 
-    if (ownerEmail.error) {
-      if (isResendDomainVerificationError(ownerEmail.error)) {
-        throw new AppError(
-          503,
-          "Email service is in Resend testing mode. Verify a sending domain in Resend to deliver owner notifications.",
-          "RESEND_DOMAIN_NOT_VERIFIED",
-          ownerEmail.error
-        );
-      }
-
-      throw ownerEmail.error;
-    }
-  } catch (error) {
-    if (error instanceof AppError) {
-      throw error;
-    }
-
-    throw new AppError(
-      502,
-      "Email provider did not accept the owner notification. Please try again later.",
-      "RESEND_OWNER_SEND_FAILED",
-      error
-    );
-  }
-
-  const senderCopy = await resend.emails
-    .send({
-      from: `Arthur Dadalian <${env.RESEND_FROM_EMAIL}>`,
+    await transporter.sendMail({
+      from: env.EMAIL_USER,
       to: data.email,
       subject: "Copy of your message to Arthur Dadalian",
       text: buildCopyText(data),
       html: buildCopyHtml(data)
-    })
-    .catch(() => ({ data: null, error: new Error("Sender copy failed") }));
-
-  return {
-    ownerSent: true,
-    copySent: !senderCopy.error
-  } satisfies ContactEmailResult;
+    });
+  } catch (error) {
+    throw new AppError(
+      502,
+      "Gmail SMTP could not send the contact emails. Please try again later.",
+      "EMAIL_SEND_FAILED",
+      error
+    );
+  }
 }

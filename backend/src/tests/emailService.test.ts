@@ -2,18 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { env } from "../config/env.js";
 import { sendContactEmails } from "../services/emailService.js";
 
-const resendMocks = vi.hoisted(() => ({
-  send: vi.fn()
+const nodemailerMocks = vi.hoisted(() => ({
+  createTransport: vi.fn(),
+  sendMail: vi.fn()
 }));
 
-vi.mock("resend", () => ({
-  Resend: vi.fn().mockImplementation(function ResendMock() {
-    return {
-      emails: {
-        send: resendMocks.send
-      }
-    };
-  })
+vi.mock("nodemailer", () => ({
+  default: {
+    createTransport: nodemailerMocks.createTransport
+  }
 }));
 
 const payload = {
@@ -25,83 +22,69 @@ const payload = {
 
 describe("email service", () => {
   beforeEach(() => {
-    env.RESEND_API_KEY = "test_resend_key";
-    env.RESEND_FROM_EMAIL = "onboarding@resend.dev";
+    env.EMAIL_USER = "arthur.gmail@example.com";
+    env.EMAIL_PASS = "google-app-password";
     env.OWNER_EMAIL = "arthurdadalian@gmail.com";
-    resendMocks.send.mockReset();
-    resendMocks.send.mockResolvedValue({ data: { id: "email-id" }, error: null });
+    nodemailerMocks.createTransport.mockReset();
+    nodemailerMocks.sendMail.mockReset();
+    nodemailerMocks.createTransport.mockReturnValue({
+      sendMail: nodemailerMocks.sendMail
+    });
+    nodemailerMocks.sendMail.mockResolvedValue({ messageId: "email-id" });
   });
 
-  it("sends one email to the owner and one copy to the sender", async () => {
-    const result = await sendContactEmails(payload);
+  it("sends one Gmail SMTP email to the owner and one confirmation to the sender", async () => {
+    await sendContactEmails(payload);
 
-    expect(result).toEqual({ ownerSent: true, copySent: true });
-    expect(resendMocks.send).toHaveBeenCalledTimes(2);
-    expect(resendMocks.send).toHaveBeenNthCalledWith(
+    expect(nodemailerMocks.createTransport).toHaveBeenCalledWith({
+      service: "gmail",
+      auth: {
+        user: "arthur.gmail@example.com",
+        pass: "google-app-password"
+      }
+    });
+    expect(nodemailerMocks.sendMail).toHaveBeenCalledTimes(2);
+    expect(nodemailerMocks.sendMail).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
+        from: "arthur.gmail@example.com",
         to: "arthurdadalian@gmail.com",
         replyTo: payload.email,
         subject: `New contact request from ${payload.name}`
       })
     );
-    expect(resendMocks.send).toHaveBeenNthCalledWith(
+    expect(nodemailerMocks.sendMail).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
+        from: "arthur.gmail@example.com",
         to: payload.email,
         subject: "Copy of your message to Arthur Dadalian"
       })
     );
   });
 
-  it("keeps the owner request delivered if the sender copy is rejected", async () => {
-    resendMocks.send
-      .mockResolvedValueOnce({ data: { id: "owner-email" }, error: null })
-      .mockResolvedValueOnce({ data: null, error: new Error("Rejected") });
-
-    const result = await sendContactEmails(payload);
-
-    expect(result).toEqual({ ownerSent: true, copySent: false });
-    expect(resendMocks.send).toHaveBeenCalledTimes(2);
-  });
-
-  it("throws a safe error if Resend rejects the owner email", async () => {
-    resendMocks.send.mockResolvedValueOnce({ data: null, error: new Error("Rejected") });
+  it("throws a safe error if Gmail SMTP rejects an email", async () => {
+    nodemailerMocks.sendMail.mockRejectedValueOnce(new Error("Authentication failed"));
 
     await expect(sendContactEmails(payload)).rejects.toMatchObject({
       statusCode: 502,
-      code: "RESEND_OWNER_SEND_FAILED",
-      message: "Email provider did not accept the owner notification. Please try again later."
+      code: "EMAIL_SEND_FAILED",
+      message: "Gmail SMTP could not send the contact emails. Please try again later."
     });
-    expect(resendMocks.send).toHaveBeenCalledTimes(1);
+    expect(nodemailerMocks.sendMail).toHaveBeenCalledTimes(1);
   });
 
-  it("returns a setup error for Resend testing mode recipient restrictions", async () => {
-    resendMocks.send.mockResolvedValueOnce({
-      data: null,
-      error: new Error(
-        "You can only send testing emails to your own email address (darb4293@gmail.com)."
-      )
-    });
-
-    await expect(sendContactEmails(payload)).rejects.toMatchObject({
-      statusCode: 503,
-      code: "RESEND_DOMAIN_NOT_VERIFIED",
-      message:
-        "Email service is in Resend testing mode. Verify a sending domain in Resend to deliver owner notifications."
-    });
-    expect(resendMocks.send).toHaveBeenCalledTimes(1);
-  });
-
-  it("throws a safe error when email configuration is missing", async () => {
-    env.RESEND_API_KEY = "";
+  it("throws a safe error when Gmail SMTP configuration is missing", async () => {
+    env.EMAIL_USER = "";
+    env.EMAIL_PASS = "";
     env.OWNER_EMAIL = "";
 
     await expect(sendContactEmails(payload)).rejects.toMatchObject({
       statusCode: 503,
-      code: "RESEND_CONFIG_MISSING",
-      message: "Email service is not configured yet. Please try again later."
+      code: "EMAIL_CONFIG_MISSING",
+      message: "Email service is not configured. Please try again later."
     });
-    expect(resendMocks.send).not.toHaveBeenCalled();
+    expect(nodemailerMocks.createTransport).not.toHaveBeenCalled();
+    expect(nodemailerMocks.sendMail).not.toHaveBeenCalled();
   });
 });

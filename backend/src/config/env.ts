@@ -28,13 +28,13 @@ export const env = {
   PORT: numberFromEnv(process.env.PORT, 5000),
   CLIENT_URL: stringFromEnv(process.env.CLIENT_URL, "http://localhost:5173"),
   VERCEL_URL: stringFromEnv(process.env.VERCEL_URL),
-  RESEND_API_KEY: stringFromEnv(process.env.RESEND_API_KEY),
-  RESEND_FROM_EMAIL: stringFromEnv(process.env.RESEND_FROM_EMAIL, "onboarding@resend.dev"),
-  OWNER_EMAIL: stringFromEnv(process.env.OWNER_EMAIL, "arthurdadalian@gmail.com"),
+  EMAIL_USER: stringFromEnv(process.env.EMAIL_USER),
+  EMAIL_PASS: stringFromEnv(process.env.EMAIL_PASS),
+  OWNER_EMAIL: stringFromEnv(process.env.OWNER_EMAIL),
   OPENAI_API_KEY: stringFromEnv(process.env.OPENAI_API_KEY),
   OPENAI_MODEL: stringFromEnv(process.env.OPENAI_MODEL, "gpt-4.1-mini")
 };
 
 export function isEmailConfigured() {
-  return Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.OWNER_EMAIL);
+  return Boolean(env.EMAIL_USER && env.EMAIL_PASS && env.OWNER_EMAIL);
 }

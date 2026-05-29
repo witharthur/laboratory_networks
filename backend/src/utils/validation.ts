@@ -3,10 +3,10 @@ import { z } from "zod";
 const phonePattern = /^\+?[0-9][0-9\s().-]{6,20}$/;
 
 export const contactSchema = z.object({
-  name: z.string().trim().min(2, "Name must contain at least 2 characters.").max(80),
-  phone: z.string().trim().regex(phonePattern, "Phone number is invalid.").max(24),
+  name: z.string().trim().min(1, "Name is required.").max(80),
+  phone: z.string().trim().min(1, "Phone is required.").regex(phonePattern, "Phone number is invalid.").max(24),
   email: z.string().trim().email("Email address is invalid.").max(120),
-  comment: z.string().trim().min(10, "Comment must contain at least 10 characters.").max(2000)
+  comment: z.string().trim().min(1, "Comment is required.").max(2000)
 });
 
 export const aiSummarySchema = z.object({

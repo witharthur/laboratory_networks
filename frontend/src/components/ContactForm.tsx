@@ -19,7 +19,7 @@ function validate(values: ContactPayload, messages: LocalizedContent["contactFor
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phonePattern = /^\+?[0-9][0-9\s().-]{6,20}$/;
 
-  if (values.name.trim().length < 2) {
+  if (values.name.trim().length === 0) {
     errors.name = messages.name;
   }
 
@@ -31,7 +31,7 @@ function validate(values: ContactPayload, messages: LocalizedContent["contactFor
     errors.email = messages.email;
   }
 
-  if (values.comment.trim().length < 10) {
+  if (values.comment.trim().length === 0) {
     errors.comment = messages.comment;
   }
 
@@ -94,18 +94,10 @@ export function ContactForm({ content }: ContactFormProps) {
       setValues(initialValues);
       setErrors({});
       setStatus("success");
-      setMessage(
-        response.copySent === false ? content.successCopyFailed : content.successCopySent
-      );
+      setMessage(response.message ?? content.successCopySent);
     } catch (error) {
       setStatus("error");
-      setMessage(
-        error instanceof ApiError
-          ? error.code === "RESEND_DOMAIN_NOT_VERIFIED"
-            ? content.errors.emailServiceSetup
-            : error.message
-          : content.errors.fallback
-      );
+      setMessage(error instanceof ApiError ? error.message : content.errors.fallback);
     }
   }
 

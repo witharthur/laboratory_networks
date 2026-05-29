@@ -1,6 +1,6 @@
 # Laboratory Networks
 
-Персональная landing page-презентация frontend/full-stack разработчика Arthur Dadalian. Проект сделан как тестовое задание: адаптивный React-интерфейс, Express API, рабочая feedback-форма, отправка писем через Resend, AI Summary Studio и конфигурация для деплоя на Vercel.
+Персональная landing page-презентация frontend/full-stack разработчика Arthur Dadalian. Проект сделан как тестовое задание: адаптивный React-интерфейс, Express API, рабочая feedback-форма, отправка писем через Gmail SMTP/Nodemailer, AI Summary Studio и конфигурация для деплоя на Vercel.
 
 ## Возможности
 
@@ -17,7 +17,7 @@
 - Frontend: React, TypeScript, Vite, SCSS, Lucide React.
 - Backend: Node.js, Express, TypeScript.
 - Validation: Zod на backend и клиентская проверка на frontend.
-- Email: Resend.
+- Email: Nodemailer + Gmail SMTP.
 - AI: OpenAI SDK, Responses API, fallback summary.
 - Quality: TypeScript, ESLint, Vitest, Supertest, production build.
 - Deployment: Vercel, serverless bridge для Express API.
@@ -61,8 +61,8 @@ npm install
 Backend:
 
 ```env
-RESEND_API_KEY=
-RESEND_FROM_EMAIL=onboarding@resend.dev
+EMAIL_USER=
+EMAIL_PASS=
 OWNER_EMAIL=arthurdadalian@gmail.com
 CLIENT_URL=http://localhost:5173
 PORT=5000
@@ -121,14 +121,13 @@ npm run check
 1. Frontend валидирует обязательные поля, формат email, телефон и длину комментария.
 2. При отправке показывается loading state и вызывается `POST /api/contact`.
 3. Backend повторно валидирует body через Zod.
-4. Resend сначала отправляет письмо владельцу сайта на `OWNER_EMAIL`.
-5. Затем Resend пробует отправить копию пользователю на email из формы.
-6. API возвращает понятный JSON.
+4. Nodemailer отправляет письмо владельцу сайта на `OWNER_EMAIL` через Gmail SMTP.
+5. Затем Nodemailer отправляет подтверждение пользователю на email из формы.
+6. API возвращает `{ "success": true }` при успешной отправке двух писем или `{ "success": false, "error": "message" }` при ошибке.
 7. Frontend показывает success/error state и очищает форму после успешной отправки.
 
 Если email-сервис не настроен, API возвращает `503` с безопасным сообщением без раскрытия секретов.
-Если копия пользователю не доставилась, заявка все равно считается отправленной после успешного owner email, чтобы владелец сайта не терял обращения.
-Если используется `onboarding@resend.dev`, Resend разрешает отправку только на email владельца Resend-аккаунта. Для доставки на `arthurdadalian@gmail.com` нужен verified domain в Resend и `RESEND_FROM_EMAIL` на этом домене.
+Для `EMAIL_PASS` нужен Google App Password, а не обычный пароль от Gmail. Email пользователя используется только в `replyTo`, поле `from` всегда берется из `EMAIL_USER`.
 
 ## Как работает AI Summary Studio
 
@@ -160,7 +159,7 @@ Frontend-блок отправляет текст профиля и выбран
 - TypeScript и build ошибки;
 - корректность API-путей;
 - frontend/backend environment usage;
-- обработка ошибок Resend;
+- обработка ошибок Gmail SMTP/Nodemailer;
 - fallback для AI без ключа;
 - client/server validation;
 - доступность labels, aria-атрибутов и disabled/loading states;
@@ -178,19 +177,19 @@ Frontend-блок отправляет текст профиля и выбран
 Production env variables в Vercel:
 
 ```env
-RESEND_API_KEY=
-RESEND_FROM_EMAIL=onboarding@resend.dev
+EMAIL_USER=
+EMAIL_PASS=
 OWNER_EMAIL=arthurdadalian@gmail.com
 CLIENT_URL=https://your-vercel-domain.vercel.app
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-`OPENAI_API_KEY` необязателен. `RESEND_API_KEY`, `RESEND_FROM_EMAIL` и `OWNER_EMAIL` нужны для реальной отправки feedback emails. Для production лучше использовать подтвержденный домен в Resend.
+`OPENAI_API_KEY` необязателен. `EMAIL_USER`, `EMAIL_PASS` и `OWNER_EMAIL` нужны для реальной отправки feedback emails. В production `EMAIL_PASS` должен быть Google App Password.
 
 ## Ограничения
 
-- Без настроенного Resend feedback API вернет `503`, потому что реальная отправка email невозможна.
+- Без настроенного Gmail SMTP feedback API вернет `503`, потому что реальная отправка email невозможна.
 - Без валидного OpenAI key AI endpoint работает в fallback-режиме.
 - В проекте нет базы данных: заявки отправляются email-ом и не сохраняются.
 

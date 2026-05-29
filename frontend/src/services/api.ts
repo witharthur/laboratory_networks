@@ -10,8 +10,7 @@ export type ContactPayload = {
 
 export type ApiSuccess = {
   success: true;
-  message: string;
-  copySent?: boolean;
+  message?: string;
 };
 
 export type AiSummaryResponse = ApiSuccess & {
@@ -28,6 +27,7 @@ export type AiSummaryPayload = {
 
 type ApiErrorPayload = {
   success?: false;
+  error?: string;
   message?: string;
   code?: string;
   errors?: Record<string, string[]>;
@@ -66,7 +66,7 @@ async function postJson<TResponse, TPayload>(path: string, payload: TPayload): P
 
   if (!response.ok) {
     throw new ApiError(
-      data.message ?? "Request failed. Please check the form and try again.",
+      data.error ?? data.message ?? "Request failed. Please check the form and try again.",
       response.status,
       data.code,
       data.errors

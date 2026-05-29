@@ -29,40 +29,23 @@ describe("health API", () => {
 describe("contact API", () => {
   beforeEach(() => {
     vi.mocked(sendContactEmails).mockReset();
-    vi.mocked(sendContactEmails).mockResolvedValue({ ownerSent: true, copySent: true });
+    vi.mocked(sendContactEmails).mockResolvedValue(undefined);
   });
 
   it("accepts a valid contact request", async () => {
     const response = await request(app).post("/api/contact").send(validPayload).expect(200);
 
-    expect(response.body).toMatchObject({
-      success: true,
-      copySent: true,
-      message: "Thanks! Your message has been sent to Arthur. A copy was sent to your email."
-    });
-    expect(sendContactEmails).toHaveBeenCalledWith(validPayload);
-  });
-
-  it("accepts a valid contact request even if the sender copy is not delivered", async () => {
-    vi.mocked(sendContactEmails).mockResolvedValueOnce({ ownerSent: true, copySent: false });
-
-    const response = await request(app).post("/api/contact").send(validPayload).expect(200);
-
-    expect(response.body).toMatchObject({
-      success: true,
-      copySent: false,
-      message: "Thanks! Your message has been sent to Arthur. A copy email could not be delivered."
-    });
+    expect(response.body).toEqual({ success: true });
     expect(sendContactEmails).toHaveBeenCalledWith(validPayload);
   });
 
   it("returns 400 for invalid contact data", async () => {
     const response = await request(app)
       .post("/api/contact")
-      .send({ name: "A", phone: "bad", email: "bad", comment: "short" })
+      .send({ name: "", phone: "bad", email: "bad", comment: "" })
       .expect(400);
 
-    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe("Please check the highlighted fields.");
     expect(response.body.errors).toHaveProperty("name");
     expect(response.body.errors).toHaveProperty("phone");
     expect(response.body.errors).toHaveProperty("email");
@@ -79,6 +62,7 @@ describe("contact API", () => {
 
     expect(response.body).toMatchObject({
       success: false,
+      error: "Request body must be valid JSON.",
       message: "Request body must be valid JSON.",
       code: "INVALID_JSON"
     });
@@ -87,14 +71,14 @@ describe("contact API", () => {
 
   it("returns a clear status when email sending fails", async () => {
     vi.mocked(sendContactEmails).mockRejectedValueOnce(
-      new AppError(503, "Email service is not configured yet. Please try again later.")
+      new AppError(503, "Email service is not configured. Please try again later.")
     );
 
     const response = await request(app).post("/api/contact").send(validPayload).expect(503);
 
     expect(response.body).toMatchObject({
       success: false,
-      message: "Email service is not configured yet. Please try again later."
+      error: "Email service is not configured. Please try again later."
     });
   });
 });

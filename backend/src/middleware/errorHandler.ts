@@ -20,6 +20,7 @@ function isJsonParseError(error: unknown): error is HttpParserError {
 export const notFoundHandler: RequestHandler = (_req, res) => {
   res.status(404).json({
     success: false,
+    error: "Route not found.",
     message: "Route not found."
   });
 };
@@ -28,6 +29,7 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   if (error instanceof AppError) {
     res.status(error.statusCode).json({
       success: false,
+      error: error.message,
       message: error.message,
       code: error.code
     });
@@ -37,6 +39,7 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   if (isJsonParseError(error)) {
     res.status(400).json({
       success: false,
+      error: "Request body must be valid JSON.",
       message: "Request body must be valid JSON.",
       code: "INVALID_JSON"
     });
@@ -45,6 +48,7 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
 
   res.status(500).json({
     success: false,
+    error: "Unexpected server error. Please try again later.",
     message: "Unexpected server error. Please try again later."
   });
 };
