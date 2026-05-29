@@ -19,7 +19,7 @@ vi.mock("resend", () => ({
 const payload = {
   name: "Arthur Dadalian",
   phone: "+374 99 123 456",
-  email: "arthur@example.com",
+  email: "sender@example.com",
   comment: "I want to discuss a frontend project."
 };
 
@@ -27,7 +27,7 @@ describe("email service", () => {
   beforeEach(() => {
     env.RESEND_API_KEY = "test_resend_key";
     env.RESEND_FROM_EMAIL = "onboarding@resend.dev";
-    env.OWNER_EMAIL = "owner@example.com";
+    env.OWNER_EMAIL = "arthurdadalian@gmail.com";
     resendMocks.send.mockReset();
     resendMocks.send.mockResolvedValue({ data: { id: "email-id" }, error: null });
   });
@@ -39,7 +39,7 @@ describe("email service", () => {
     expect(resendMocks.send).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        to: "owner@example.com",
+        to: "arthurdadalian@gmail.com",
         replyTo: payload.email,
         subject: `New contact request from ${payload.name}`
       })

@@ -62,7 +62,7 @@ Backend:
 ```env
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=verified-sender@example.com
-OWNER_EMAIL=owner@example.com
+OWNER_EMAIL=arthurdadalian@gmail.com
 CLIENT_URL=http://localhost:5173
 PORT=5000
 OPENAI_API_KEY=
@@ -177,7 +177,7 @@ Production env variables в Vercel:
 ```env
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=verified-sender@example.com
-OWNER_EMAIL=owner@example.com
+OWNER_EMAIL=arthurdadalian@gmail.com
 CLIENT_URL=https://your-vercel-domain.vercel.app
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4.1-mini

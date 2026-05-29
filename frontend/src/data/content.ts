@@ -28,7 +28,7 @@ export const navItems: NavItem[] = [
   { label: "About", href: "#about" },
   { label: "Stack", href: "#stack" },
   { label: "Experience", href: "#experience" },
-  { label: "AI", href: "#ai" },
+  { label: "AI tools", href: "#ai" },
   { label: "Contact", href: "#contact" }
 ];
 
@@ -162,7 +162,11 @@ export const cases: DetailItem[] = [
 ];
 
 export const contactLinks = [
-  { label: "Email", value: "arthurdadalian@gmail.com", href: "mailto:arthurdadalian@gmail.com" },
+  {
+    label: "Email",
+    value: "arthurdadalian@gmail.com",
+    href: "mailto:arthurdadalian@gmail.com"
+  },
   { label: "Phone", value: "+374 98 455 949", href: "tel:+37498455949" },
   { label: "Location", value: "Yerevan, Armenia", href: "https://maps.google.com/?q=Yerevan" }
 ];

@@ -11,7 +11,7 @@ vi.mock("../services/emailService.js", () => ({
 const validPayload = {
   name: "Arthur Dadalian",
   phone: "+374 99 123 456",
-  email: "arthur@example.com",
+  email: "sender@example.com",
   comment: "I want to discuss a frontend project."
 };
 
