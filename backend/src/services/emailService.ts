@@ -3,6 +3,11 @@ import { env, isEmailConfigured } from "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 import type { ContactRequest } from "../utils/validation.js";
 
+type ContactEmailResult = {
+  ownerSent: true;
+  copySent: boolean;
+};
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -65,33 +70,39 @@ export async function sendContactEmails(data: ContactRequest) {
   const resend = new Resend(env.RESEND_API_KEY);
 
   try {
-    const [ownerEmail, senderCopy] = await Promise.all([
-      resend.emails.send({
-        from: `Arthur Dadalian Landing <${env.RESEND_FROM_EMAIL}>`,
-        to: env.OWNER_EMAIL,
-        replyTo: data.email,
-        subject: `New contact request from ${data.name}`,
-        text: buildOwnerText(data),
-        html: buildOwnerHtml(data)
-      }),
-      resend.emails.send({
-        from: `Arthur Dadalian <${env.RESEND_FROM_EMAIL}>`,
-        to: data.email,
-        subject: "Copy of your message to Arthur Dadalian",
-        text: buildCopyText(data),
-        html: buildCopyHtml(data)
-      })
-    ]);
+    const ownerEmail = await resend.emails.send({
+      from: `Arthur Dadalian Landing <${env.RESEND_FROM_EMAIL}>`,
+      to: env.OWNER_EMAIL,
+      replyTo: data.email,
+      subject: `New contact request from ${data.name}`,
+      text: buildOwnerText(data),
+      html: buildOwnerHtml(data)
+    });
 
-    if (ownerEmail.error || senderCopy.error) {
-      throw ownerEmail.error ?? senderCopy.error;
+    if (ownerEmail.error) {
+      throw ownerEmail.error;
     }
   } catch (error) {
     throw new AppError(
       502,
-      "Email provider did not accept the message. Please try again later.",
-      "RESEND_SEND_FAILED",
+      "Email provider did not accept the owner notification. Please try again later.",
+      "RESEND_OWNER_SEND_FAILED",
       error
     );
   }
+
+  const senderCopy = await resend.emails
+    .send({
+      from: `Arthur Dadalian <${env.RESEND_FROM_EMAIL}>`,
+      to: data.email,
+      subject: "Copy of your message to Arthur Dadalian",
+      text: buildCopyText(data),
+      html: buildCopyHtml(data)
+    })
+    .catch(() => ({ data: null, error: new Error("Sender copy failed") }));
+
+  return {
+    ownerSent: true,
+    copySent: !senderCopy.error
+  } satisfies ContactEmailResult;
 }

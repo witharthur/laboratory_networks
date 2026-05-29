@@ -1,4 +1,5 @@
 import { Mail, MapPin, Phone } from "lucide-react";
+import { useEffect, useState } from "react";
 import { AiSummaryHelper } from "./components/AiSummaryHelper";
 import { ContactForm } from "./components/ContactForm";
 import { DetailGrid } from "./components/DetailGrid";
@@ -6,53 +7,57 @@ import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { Section } from "./components/Section";
 import { TechStack } from "./components/TechStack";
-import {
-  aiUsage,
-  cases,
-  contactLinks,
-  directions,
-  experienceItems,
-  workSteps
-} from "./data/content";
+import { content, Locale } from "./data/content";
 import { useScrollReveal } from "./hooks/useScrollReveal";
 
 const contactIcons = [Mail, Phone, MapPin];
+const localeStorageKey = "arthur-landing-locale";
+
+function getInitialLocale(): Locale {
+  return window.localStorage.getItem(localeStorageKey) === "en" ? "en" : "ru";
+}
 
 export function App() {
+  const [locale, setLocale] = useState<Locale>(getInitialLocale);
+  const pageContent = content[locale];
+
   useScrollReveal();
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    window.localStorage.setItem(localeStorageKey, locale);
+  }, [locale]);
 
   return (
     <>
-      <Header />
+      <Header
+        navItems={pageContent.navItems}
+        ctaLabel={pageContent.header.cta}
+        locale={locale}
+        languageLabel={pageContent.header.languageLabel}
+        openMenuLabel={pageContent.header.openMenu}
+        closeMenuLabel={pageContent.header.closeMenu}
+        navLabel={pageContent.header.navLabel}
+        onLocaleChange={setLocale}
+      />
       <main>
-        <Hero />
+        <Hero content={pageContent.hero} />
 
         <Section
           id="about"
-          eyebrow="About me"
-          title="Developer focused on useful interfaces and complete flows"
-          intro="I care about the whole path from a clean screen to a working API response. Good UI should be readable, adaptive, accessible, and honest about what is happening."
+          eyebrow={pageContent.about.eyebrow}
+          title={pageContent.about.title}
+          intro={pageContent.about.intro}
         >
           <div className="about-layout">
-            <p data-reveal>
-              My work combines frontend craft with backend understanding: React components,
-              TypeScript contracts, form validation, REST endpoints, email delivery, AI-assisted
-              features, and deployment details. I like projects that are easy to inspect and easy to
-              continue.
-            </p>
+            <p data-reveal>{pageContent.about.body}</p>
             <div className="about-stats" aria-label="Profile highlights">
-              <div data-reveal>
-                <strong>React</strong>
-                <span>UI foundation</span>
-              </div>
-              <div data-reveal>
-                <strong>Node.js</strong>
-                <span>API layer</span>
-              </div>
-              <div data-reveal>
-                <strong>AI</strong>
-                <span>Practical tooling</span>
-              </div>
+              {pageContent.about.stats.map((item) => (
+                <div data-reveal key={item.title}>
+                  <strong>{item.title}</strong>
+                  <span>{item.text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </Section>
@@ -60,63 +65,67 @@ export function App() {
         <Section
           id="stack"
           tone="muted"
-          eyebrow="Tech stack"
-          title="Tools I use to ship maintainable product code"
+          eyebrow={pageContent.sections.stack.eyebrow}
+          title={pageContent.sections.stack.title}
         >
-          <TechStack />
+          <TechStack groups={pageContent.techStack} />
         </Section>
 
         <Section
           id="experience"
-          eyebrow="Experience"
-          title="What I bring into a team"
-          intro="A project is stronger when the interface, API contract, and failure states are designed together."
+          eyebrow={pageContent.sections.experience.eyebrow}
+          title={pageContent.sections.experience.title}
+          intro={pageContent.sections.experience.intro}
         >
-          <DetailGrid items={experienceItems} />
+          <DetailGrid items={pageContent.experienceItems} />
         </Section>
 
         <Section
           id="directions"
           tone="muted"
-          eyebrow="Development directions"
-          title="Where I am growing deliberately"
+          eyebrow={pageContent.sections.directions.eyebrow}
+          title={pageContent.sections.directions.title}
         >
-          <DetailGrid items={directions} />
+          <DetailGrid items={pageContent.directions} />
         </Section>
 
-        <Section id="workflow" eyebrow="How I work" title="Clear steps, small decisions, visible results">
-          <DetailGrid items={workSteps} variant="timeline" />
+        <Section
+          id="workflow"
+          eyebrow={pageContent.sections.workflow.eyebrow}
+          title={pageContent.sections.workflow.title}
+        >
+          <DetailGrid items={pageContent.workSteps} variant="timeline" />
         </Section>
 
         <Section
           id="ai"
           tone="dark"
-          eyebrow="AI tools"
-          title="How I use AI tools in development"
-          intro="AI is useful when it speeds up exploration, catches gaps, and stays connected to manual review."
+          eyebrow={pageContent.sections.ai.eyebrow}
+          title={pageContent.sections.ai.title}
+          intro={pageContent.sections.ai.intro}
         >
-          <DetailGrid items={aiUsage} />
-          <AiSummaryHelper />
+          <DetailGrid items={pageContent.aiUsage} />
+          <AiSummaryHelper content={pageContent.aiHelper} />
         </Section>
 
         <Section
           id="projects"
-          eyebrow="Cases / projects"
-          title="Small cases that demonstrate the full stack"
+          eyebrow={pageContent.sections.projects.eyebrow}
+          title={pageContent.sections.projects.title}
         >
-          <DetailGrid items={cases} />
+          <DetailGrid items={pageContent.cases} />
         </Section>
 
         <Section
           id="contact"
           tone="muted"
-          eyebrow="Contacts"
-          title="Let us talk about the next interface"
-          intro="Send a short note about the product, team, or workflow you want to improve."
+          eyebrow={pageContent.sections.contact.eyebrow}
+          title={pageContent.sections.contact.title}
+          intro={pageContent.sections.contact.intro}
         >
           <div className="contact-layout">
             <address className="contact-list">
-              {contactLinks.map((item, index) => {
+              {pageContent.contactLinks.map((item, index) => {
                 const Icon = contactIcons[index];
 
                 return (
@@ -138,8 +147,8 @@ export function App() {
             </address>
 
             <div className="feedback-panel" aria-labelledby="feedback-title" data-reveal>
-              <h3 id="feedback-title">Feedback form</h3>
-              <ContactForm />
+              <h3 id="feedback-title">{pageContent.feedbackTitle}</h3>
+              <ContactForm content={pageContent.contactForm} />
             </div>
           </div>
         </Section>

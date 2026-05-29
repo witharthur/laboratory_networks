@@ -1,6 +1,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, LoaderCircle, Send } from "lucide-react";
 import { ApiError, ContactPayload, sendContact } from "../services/api";
+import type { LocalizedContent } from "../data/content";
 
 type FieldName = keyof ContactPayload;
 type FieldErrors = Partial<Record<FieldName, string>>;
@@ -13,31 +14,35 @@ const initialValues: ContactPayload = {
   comment: ""
 };
 
-function validate(values: ContactPayload): FieldErrors {
+function validate(values: ContactPayload, messages: LocalizedContent["contactForm"]["errors"]): FieldErrors {
   const errors: FieldErrors = {};
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phonePattern = /^\+?[0-9][0-9\s().-]{6,20}$/;
 
   if (values.name.trim().length < 2) {
-    errors.name = "Please enter at least 2 characters.";
+    errors.name = messages.name;
   }
 
   if (!phonePattern.test(values.phone.trim())) {
-    errors.phone = "Please enter a valid phone number.";
+    errors.phone = messages.phone;
   }
 
   if (!emailPattern.test(values.email.trim())) {
-    errors.email = "Please enter a valid email address.";
+    errors.email = messages.email;
   }
 
   if (values.comment.trim().length < 10) {
-    errors.comment = "Please enter at least 10 characters.";
+    errors.comment = messages.comment;
   }
 
   return errors;
 }
 
-export function ContactForm() {
+type ContactFormProps = {
+  content: LocalizedContent["contactForm"];
+};
+
+export function ContactForm({ content }: ContactFormProps) {
   const [values, setValues] = useState<ContactPayload>(initialValues);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<FormStatus>("idle");
@@ -47,11 +52,11 @@ export function ContactForm() {
   const fields = useMemo(
     () =>
       [
-        { name: "name", label: "Name", type: "text", autoComplete: "name" },
-        { name: "phone", label: "Phone", type: "tel", autoComplete: "tel" },
-        { name: "email", label: "Email", type: "email", autoComplete: "email" }
+        { name: "name", label: content.fields.name, type: "text", autoComplete: "name" },
+        { name: "phone", label: content.fields.phone, type: "tel", autoComplete: "tel" },
+        { name: "email", label: content.fields.email, type: "email", autoComplete: "email" }
       ] as const,
-    []
+    [content.fields.email, content.fields.name, content.fields.phone]
   );
 
   function handleChange(field: FieldName, value: string) {
@@ -66,12 +71,12 @@ export function ContactForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextErrors = validate(values);
+    const nextErrors = validate(values, content.errors);
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
       setStatus("error");
-      setMessage("Please fix the highlighted fields.");
+      setMessage(content.errors.form);
       return;
     }
 
@@ -89,13 +94,15 @@ export function ContactForm() {
       setValues(initialValues);
       setErrors({});
       setStatus("success");
-      setMessage(response.message);
+      setMessage(
+        response.copySent === false ? content.successCopyFailed : content.successCopySent
+      );
     } catch (error) {
       setStatus("error");
       setMessage(
         error instanceof ApiError
           ? error.message
-          : "Message could not be sent. Please try again later."
+          : content.errors.fallback
       );
     }
   }
@@ -130,7 +137,7 @@ export function ContactForm() {
       })}
 
       <div className="form-field">
-        <label htmlFor="comment">Comment</label>
+        <label htmlFor="comment">{content.fields.comment}</label>
         <textarea
           id="comment"
           name="comment"
@@ -157,9 +164,9 @@ export function ContactForm() {
         {isLoading ? (
           <LoaderCircle className="spin" size={18} aria-hidden="true" />
         ) : (
-          <Send size={18} aria-hidden="true" />
+        <Send size={18} aria-hidden="true" />
         )}
-        Send message
+        {content.submit}
       </button>
 
       <div aria-live="polite">

@@ -29,7 +29,7 @@ describe("health API", () => {
 describe("contact API", () => {
   beforeEach(() => {
     vi.mocked(sendContactEmails).mockReset();
-    vi.mocked(sendContactEmails).mockResolvedValue(undefined);
+    vi.mocked(sendContactEmails).mockResolvedValue({ ownerSent: true, copySent: true });
   });
 
   it("accepts a valid contact request", async () => {
@@ -37,7 +37,21 @@ describe("contact API", () => {
 
     expect(response.body).toMatchObject({
       success: true,
-      message: "Thanks! Your message has been sent. A copy was sent to your email."
+      copySent: true,
+      message: "Thanks! Your message has been sent to Arthur. A copy was sent to your email."
+    });
+    expect(sendContactEmails).toHaveBeenCalledWith(validPayload);
+  });
+
+  it("accepts a valid contact request even if the sender copy is not delivered", async () => {
+    vi.mocked(sendContactEmails).mockResolvedValueOnce({ ownerSent: true, copySent: false });
+
+    const response = await request(app).post("/api/contact").send(validPayload).expect(200);
+
+    expect(response.body).toMatchObject({
+      success: true,
+      copySent: false,
+      message: "Thanks! Your message has been sent to Arthur. A copy email could not be delivered."
     });
     expect(sendContactEmails).toHaveBeenCalledWith(validPayload);
   });

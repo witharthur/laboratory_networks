@@ -30,7 +30,7 @@ export const env = {
   VERCEL_URL: stringFromEnv(process.env.VERCEL_URL),
   RESEND_API_KEY: stringFromEnv(process.env.RESEND_API_KEY),
   RESEND_FROM_EMAIL: stringFromEnv(process.env.RESEND_FROM_EMAIL, "onboarding@resend.dev"),
-  OWNER_EMAIL: stringFromEnv(process.env.OWNER_EMAIL),
+  OWNER_EMAIL: stringFromEnv(process.env.OWNER_EMAIL, "arthurdadalian@gmail.com"),
   OPENAI_API_KEY: stringFromEnv(process.env.OPENAI_API_KEY),
   OPENAI_MODEL: stringFromEnv(process.env.OPENAI_MODEL, "gpt-4.1-mini")
 };

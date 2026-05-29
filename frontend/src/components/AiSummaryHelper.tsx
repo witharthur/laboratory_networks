@@ -9,19 +9,18 @@ import {
   WandSparkles
 } from "lucide-react";
 import { ApiError, AiSummaryGoal, generateAiSummary } from "../services/api";
-import { defaultSummaryText } from "../data/content";
+import type { LocalizedContent } from "../data/content";
 
 type Status = "idle" | "loading" | "success" | "error";
 
-const summaryGoals: Array<{ value: AiSummaryGoal; label: string }> = [
-  { value: "portfolio", label: "Portfolio" },
-  { value: "recruiter", label: "Recruiter" },
-  { value: "project", label: "Project" },
-  { value: "linkedin", label: "LinkedIn" }
-];
+const summaryGoalValues: AiSummaryGoal[] = ["portfolio", "recruiter", "project", "linkedin"];
 
-export function AiSummaryHelper() {
-  const [text, setText] = useState(defaultSummaryText);
+type AiSummaryHelperProps = {
+  content: LocalizedContent["aiHelper"];
+};
+
+export function AiSummaryHelper({ content }: AiSummaryHelperProps) {
+  const [text, setText] = useState(content.defaultSummaryText);
   const [goal, setGoal] = useState<AiSummaryGoal>("portfolio");
   const [summary, setSummary] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -36,14 +35,14 @@ export function AiSummaryHelper() {
     try {
       const response = await generateAiSummary({ text, goal });
       setSummary(response.summary);
-      setMessage(response.source === "openai" ? "Generated with OpenAI." : "Fallback draft ready.");
+      setMessage(response.source === "openai" ? content.openaiReady : content.fallbackReady);
       setStatus("success");
     } catch (error) {
       setSummary("");
       setMessage(
         error instanceof ApiError
           ? error.message
-          : "AI summary is unavailable. Please try again later."
+          : content.unavailable
       );
       setStatus("error");
     }
@@ -60,7 +59,7 @@ export function AiSummaryHelper() {
   }
 
   function handleReset() {
-    setText(defaultSummaryText);
+    setText(content.defaultSummaryText);
     setGoal("portfolio");
     setSummary("");
     setMessage("");
@@ -75,21 +74,23 @@ export function AiSummaryHelper() {
           <span aria-hidden="true">
             <WandSparkles size={22} />
           </span>
-          <h3>AI summary studio</h3>
+          <h3>{content.title}</h3>
         </div>
-        <span className="ai-helper__badge">{status === "loading" ? "Generating" : "Ready"}</span>
+        <span className="ai-helper__badge">
+          {status === "loading" ? content.badgeLoading : content.badgeReady}
+        </span>
       </div>
 
-      <div className="ai-helper__modes" aria-label="Summary goal">
-        {summaryGoals.map((item) => (
+      <div className="ai-helper__modes" aria-label={content.goalLabel}>
+        {summaryGoalValues.map((item) => (
           <button
-            className={`ai-mode ${goal === item.value ? "ai-mode--active" : ""}`}
+            className={`ai-mode ${goal === item ? "ai-mode--active" : ""}`}
             type="button"
-            key={item.value}
-            onClick={() => setGoal(item.value)}
-            aria-pressed={goal === item.value}
+            key={item}
+            onClick={() => setGoal(item)}
+            aria-pressed={goal === item}
           >
-            {item.label}
+            {content.goals[item]}
           </button>
         ))}
       </div>
@@ -97,7 +98,7 @@ export function AiSummaryHelper() {
       <div className="ai-helper__workspace">
         <div className="ai-helper__panel ai-helper__input">
           <div className="ai-helper__field-heading">
-            <label htmlFor="ai-summary-text">Profile text</label>
+            <label htmlFor="ai-summary-text">{content.profileLabel}</label>
             <span>{text.length}/1500</span>
           </div>
           <textarea
@@ -120,18 +121,18 @@ export function AiSummaryHelper() {
               ) : (
                 <Sparkles size={18} aria-hidden="true" />
               )}
-              Generate
+              {content.generate}
             </button>
             <button className="button button--secondary" type="button" onClick={handleReset}>
               <RefreshCw size={18} aria-hidden="true" />
-              Reset
+              {content.reset}
             </button>
           </div>
         </div>
 
         <div className="ai-helper__panel ai-helper__result" aria-live="polite">
           <div className="ai-output__top">
-            <span className={`ai-source ai-source--${status}`}>{message || "Waiting"}</span>
+            <span className={`ai-source ai-source--${status}`}>{message || content.waiting}</span>
             <button
               className="button button--secondary button--compact"
               type="button"
@@ -139,7 +140,7 @@ export function AiSummaryHelper() {
               disabled={!summary}
             >
               <Clipboard size={17} aria-hidden="true" />
-              {copied ? "Copied" : "Copy"}
+              {copied ? content.copied : content.copy}
             </button>
           </div>
 
@@ -159,10 +160,7 @@ export function AiSummaryHelper() {
             </p>
           ) : null}
           {status === "idle" ? (
-            <p className="ai-output__empty">
-              Arthur Dadalian builds frontend and full-stack flows with React, TypeScript,
-              backend APIs, email delivery, and AI-assisted development.
-            </p>
+            <p className="ai-output__empty">{content.empty}</p>
           ) : null}
           {status === "loading" ? (
             <div className="ai-output__loading" aria-hidden="true">

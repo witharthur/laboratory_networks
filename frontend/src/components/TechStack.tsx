@@ -1,9 +1,13 @@
-import { techStack } from "../data/content";
+import type { LocalizedContent } from "../data/content";
 
-export function TechStack() {
+type TechStackProps = {
+  groups: LocalizedContent["techStack"];
+};
+
+export function TechStack({ groups }: TechStackProps) {
   return (
     <div className="stack-grid">
-      {techStack.map((group) => {
+      {groups.map((group) => {
         const Icon = group.icon;
 
         return (

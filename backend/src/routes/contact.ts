@@ -17,10 +17,13 @@ contactRouter.post("/", async (req, res, next) => {
   }
 
   try {
-    await sendContactEmails(parsed.data);
+    const emailResult = await sendContactEmails(parsed.data);
     res.status(200).json({
       success: true,
-      message: "Thanks! Your message has been sent. A copy was sent to your email."
+      copySent: emailResult.copySent,
+      message: emailResult.copySent
+        ? "Thanks! Your message has been sent to Arthur. A copy was sent to your email."
+        : "Thanks! Your message has been sent to Arthur. A copy email could not be delivered."
     });
   } catch (error) {
     next(error);

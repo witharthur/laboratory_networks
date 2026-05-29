@@ -33,8 +33,9 @@ describe("email service", () => {
   });
 
   it("sends one email to the owner and one copy to the sender", async () => {
-    await sendContactEmails(payload);
+    const result = await sendContactEmails(payload);
 
+    expect(result).toEqual({ ownerSent: true, copySent: true });
     expect(resendMocks.send).toHaveBeenCalledTimes(2);
     expect(resendMocks.send).toHaveBeenNthCalledWith(
       1,
@@ -53,16 +54,26 @@ describe("email service", () => {
     );
   });
 
-  it("throws a safe error if Resend rejects either email", async () => {
+  it("keeps the owner request delivered if the sender copy is rejected", async () => {
     resendMocks.send
       .mockResolvedValueOnce({ data: { id: "owner-email" }, error: null })
       .mockResolvedValueOnce({ data: null, error: new Error("Rejected") });
 
+    const result = await sendContactEmails(payload);
+
+    expect(result).toEqual({ ownerSent: true, copySent: false });
+    expect(resendMocks.send).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws a safe error if Resend rejects the owner email", async () => {
+    resendMocks.send.mockResolvedValueOnce({ data: null, error: new Error("Rejected") });
+
     await expect(sendContactEmails(payload)).rejects.toMatchObject({
       statusCode: 502,
-      code: "RESEND_SEND_FAILED",
-      message: "Email provider did not accept the message. Please try again later."
+      code: "RESEND_OWNER_SEND_FAILED",
+      message: "Email provider did not accept the owner notification. Please try again later."
     });
+    expect(resendMocks.send).toHaveBeenCalledTimes(1);
   });
 
   it("throws a safe error when email configuration is missing", async () => {

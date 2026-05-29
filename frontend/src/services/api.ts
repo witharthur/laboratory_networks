@@ -11,6 +11,7 @@ export type ContactPayload = {
 export type ApiSuccess = {
   success: true;
   message: string;
+  copySent?: boolean;
 };
 
 export type AiSummaryResponse = ApiSuccess & {
