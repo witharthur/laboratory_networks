@@ -89,11 +89,21 @@ describe("AI summary API", () => {
   it("returns a fallback summary without an OpenAI key in tests", async () => {
     const response = await request(app)
       .post("/api/ai-summary")
-      .send({ text: "React, TypeScript, Node.js and product-minded UI work." })
+      .send({ text: "React, TypeScript, Node.js and product-minded UI work.", goal: "recruiter" })
       .expect(200);
 
     expect(response.body.success).toBe(true);
     expect(response.body.source).toBe("fallback");
     expect(response.body.summary).toContain("Arthur Dadalian");
+  });
+
+  it("validates AI summary goal", async () => {
+    const response = await request(app)
+      .post("/api/ai-summary")
+      .send({ text: "React and Node.js", goal: "wrong" })
+      .expect(400);
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.errors).toHaveProperty("goal");
   });
 });

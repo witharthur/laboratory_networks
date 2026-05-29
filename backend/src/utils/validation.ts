@@ -10,7 +10,8 @@ export const contactSchema = z.object({
 });
 
 export const aiSummarySchema = z.object({
-  text: z.string().trim().max(1500, "Text must be 1500 characters or fewer.").optional().default("")
+  text: z.string().trim().max(1500, "Text must be 1500 characters or fewer.").optional().default(""),
+  goal: z.enum(["portfolio", "recruiter", "project", "linkedin"]).optional().default("portfolio")
 });
 
 export type ContactRequest = z.infer<typeof contactSchema>;

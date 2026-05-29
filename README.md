@@ -108,7 +108,14 @@ VITE_API_URL=
 
 ## Как работает AI helper
 
-Блок AI Summary Helper отправляет текст в `POST /api/ai-summary`.
+Блок AI Summary Studio отправляет текст и выбранную цель summary в `POST /api/ai-summary`.
+
+Доступные режимы:
+
+- `Portfolio`
+- `Recruiter`
+- `Project`
+- `LinkedIn`
 
 Если `OPENAI_API_KEY` задан:
 
@@ -116,11 +123,13 @@ VITE_API_URL=
 - вызывается Responses API;
 - модель берется из `OPENAI_MODEL` или `gpt-5.4-mini`.
 
-Если ключа нет:
+Если ключа нет или OpenAI временно недоступен:
 
 - endpoint не падает;
 - возвращается fallback summary;
 - frontend показывает нормальный success flow.
+
+Frontend показывает loading state, success state, fallback/source badge и кнопку копирования результата.
 
 ## AI tools usage
 

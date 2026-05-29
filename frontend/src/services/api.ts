@@ -18,6 +18,13 @@ export type AiSummaryResponse = ApiSuccess & {
   source: "openai" | "fallback";
 };
 
+export type AiSummaryGoal = "portfolio" | "recruiter" | "project" | "linkedin";
+
+export type AiSummaryPayload = {
+  text: string;
+  goal: AiSummaryGoal;
+};
+
 type ApiErrorPayload = {
   success?: false;
   message?: string;
@@ -68,6 +75,6 @@ export function sendContact(payload: ContactPayload) {
   return postJson<ApiSuccess, ContactPayload>("/api/contact", payload);
 }
 
-export function generateAiSummary(text: string) {
-  return postJson<AiSummaryResponse, { text: string }>("/api/ai-summary", { text });
+export function generateAiSummary(payload: AiSummaryPayload) {
+  return postJson<AiSummaryResponse, AiSummaryPayload>("/api/ai-summary", payload);
 }

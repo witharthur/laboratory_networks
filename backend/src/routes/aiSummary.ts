@@ -17,7 +17,7 @@ aiSummaryRouter.post("/", async (req, res, next) => {
   }
 
   try {
-    const result = await generateProfessionalSummary(parsed.data.text);
+    const result = await generateProfessionalSummary(parsed.data);
     res.status(200).json({
       success: true,
       message: "Summary generated successfully.",
