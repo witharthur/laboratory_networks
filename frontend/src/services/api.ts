@@ -1,0 +1,73 @@
+const rawApiUrl = import.meta.env.VITE_API_URL ?? "";
+const API_BASE_URL = rawApiUrl.replace(/\/$/, "");
+
+export type ContactPayload = {
+  name: string;
+  phone: string;
+  email: string;
+  comment: string;
+};
+
+export type ApiSuccess = {
+  success: true;
+  message: string;
+};
+
+export type AiSummaryResponse = ApiSuccess & {
+  summary: string;
+  source: "openai" | "fallback";
+};
+
+type ApiErrorPayload = {
+  success?: false;
+  message?: string;
+  errors?: Record<string, string[]>;
+};
+
+export class ApiError extends Error {
+  status?: number;
+  errors?: Record<string, string[]>;
+
+  constructor(message: string, status?: number, errors?: Record<string, string[]>) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
+async function postJson<TResponse, TPayload>(path: string, payload: TPayload): Promise<TResponse> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    throw new ApiError("Backend is unavailable. Please try again later.");
+  }
+
+  const data = (await response.json().catch(() => ({}))) as TResponse & ApiErrorPayload;
+
+  if (!response.ok) {
+    throw new ApiError(
+      data.message ?? "Request failed. Please check the form and try again.",
+      response.status,
+      data.errors
+    );
+  }
+
+  return data as TResponse;
+}
+
+export function sendContact(payload: ContactPayload) {
+  return postJson<ApiSuccess, ContactPayload>("/api/contact", payload);
+}
+
+export function generateAiSummary(text: string) {
+  return postJson<AiSummaryResponse, { text: string }>("/api/ai-summary", { text });
+}
