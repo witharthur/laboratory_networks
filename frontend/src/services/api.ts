@@ -1,20 +1,9 @@
 const rawApiUrl = import.meta.env.VITE_API_URL ?? "";
 const API_BASE_URL = rawApiUrl.replace(/\/$/, "");
 
-export type ContactPayload = {
-  name: string;
-  phone: string;
-  email: string;
-  comment: string;
-};
-
 export type ApiSuccess = {
   success: true;
   message?: string;
-};
-
-export type ContactResponse = ApiSuccess & {
-  mailtoUrl: string;
 };
 
 export type AiSummaryResponse = ApiSuccess & {
@@ -78,10 +67,6 @@ async function postJson<TResponse, TPayload>(path: string, payload: TPayload): P
   }
 
   return data as TResponse;
-}
-
-export function sendContact(payload: ContactPayload) {
-  return postJson<ContactResponse, ContactPayload>("/api/contact", payload);
 }
 
 export function generateAiSummary(payload: AiSummaryPayload) {

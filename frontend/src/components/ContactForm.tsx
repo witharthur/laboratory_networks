@@ -1,7 +1,13 @@
 import { FormEvent, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Send } from "lucide-react";
-import type { ContactPayload } from "../services/api";
 import type { LocalizedContent } from "../data/content";
+
+type ContactPayload = {
+  name: string;
+  phone: string;
+  email: string;
+  comment: string;
+};
 
 type FieldName = keyof ContactPayload;
 type FieldErrors = Partial<Record<FieldName, string>>;
