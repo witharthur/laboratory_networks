@@ -12,6 +12,10 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
+function normalizeHeaderValue(value: string) {
+  return value.replaceAll(/[\r\n]+/g, " ").trim();
+}
+
 function buildOwnerHtml(data: ContactRequest) {
   return `
     <h1>New contact request</h1>
@@ -53,6 +57,34 @@ function buildCopyText(data: ContactRequest) {
   ].join("\n");
 }
 
+function createTransporter() {
+  const auth = {
+    user: env.EMAIL_USER,
+    pass: env.EMAIL_PASS
+  };
+
+  const sharedOptions = {
+    auth,
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000
+  };
+
+  if (env.SMTP_HOST) {
+    return nodemailer.createTransport({
+      ...sharedOptions,
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: env.SMTP_SECURE ?? env.SMTP_PORT === 465
+    });
+  }
+
+  return nodemailer.createTransport({
+    ...sharedOptions,
+    service: "gmail"
+  });
+}
+
 export async function sendContactEmails(data: ContactRequest) {
   if (!isEmailConfigured()) {
     throw new AppError(
@@ -62,35 +94,33 @@ export async function sendContactEmails(data: ContactRequest) {
     );
   }
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: env.EMAIL_USER,
-      pass: env.EMAIL_PASS
-    }
-  });
+  const transporter = createTransporter();
+  const from = `"Arthur Dadalian" <${env.EMAIL_FROM}>`;
+  const safeName = normalizeHeaderValue(data.name);
 
   try {
-    await transporter.sendMail({
-      from: env.EMAIL_USER,
-      to: env.OWNER_EMAIL,
-      replyTo: data.email,
-      subject: `New contact request from ${data.name}`,
-      text: buildOwnerText(data),
-      html: buildOwnerHtml(data)
-    });
-
-    await transporter.sendMail({
-      from: env.EMAIL_USER,
-      to: data.email,
-      subject: "Copy of your message to Arthur Dadalian",
-      text: buildCopyText(data),
-      html: buildCopyHtml(data)
-    });
+    await Promise.all([
+      transporter.sendMail({
+        from,
+        to: env.OWNER_EMAIL,
+        replyTo: data.email,
+        subject: `New contact request from ${safeName}`,
+        text: buildOwnerText(data),
+        html: buildOwnerHtml(data)
+      }),
+      transporter.sendMail({
+        from,
+        to: data.email,
+        replyTo: env.OWNER_EMAIL,
+        subject: "Copy of your message to Arthur Dadalian",
+        text: buildCopyText(data),
+        html: buildCopyHtml(data)
+      })
+    ]);
   } catch (error) {
     throw new AppError(
       502,
-      "Gmail SMTP could not send the contact emails. Please try again later.",
+      "Email provider could not send the contact emails. Please try again later.",
       "EMAIL_SEND_FAILED",
       error
     );

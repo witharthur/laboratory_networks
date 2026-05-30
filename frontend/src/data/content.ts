@@ -294,7 +294,7 @@ export const content: Record<Locale, LocalizedContent> = {
     cases: [
       {
         title: "Contact flow with email copies",
-        meta: "Express + Gmail SMTP",
+        meta: "Express + SMTP email",
         description:
           "Feedback form валидирует данные, вызывает backend, отправляет owner email, отправляет copy пользователю и понятно обрабатывает ошибки.",
         icon: ShieldCheck
@@ -530,7 +530,7 @@ export const content: Record<Locale, LocalizedContent> = {
     cases: [
       {
         title: "Contact flow with email copies",
-        meta: "Express + Gmail SMTP",
+        meta: "Express + SMTP email",
         description:
           "A complete feedback form that validates data, calls the backend, sends an owner email, sends a copy to the user, and handles failures clearly.",
         icon: ShieldCheck
