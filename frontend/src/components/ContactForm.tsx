@@ -1,11 +1,11 @@
 import { FormEvent, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, LoaderCircle, Send } from "lucide-react";
-import { ApiError, ContactPayload, sendContact } from "../services/api";
+import { AlertCircle, CheckCircle2, Send } from "lucide-react";
+import type { ContactPayload } from "../services/api";
 import type { LocalizedContent } from "../data/content";
 
 type FieldName = keyof ContactPayload;
 type FieldErrors = Partial<Record<FieldName, string>>;
-type FormStatus = "idle" | "loading" | "success" | "error";
+type FormStatus = "idle" | "success" | "error";
 
 const initialValues: ContactPayload = {
   name: "",
@@ -42,12 +42,35 @@ type ContactFormProps = {
   content: LocalizedContent["contactForm"];
 };
 
+const ownerEmail = "arthurdadalian@gmail.com";
+
+function buildMailtoUrl(values: ContactPayload) {
+  const subject = `Portfolio contact from ${values.name}`;
+  const body = [
+    "New contact request",
+    "",
+    `Name: ${values.name}`,
+    `Phone: ${values.phone}`,
+    `Email: ${values.email}`,
+    "",
+    "Comment:",
+    values.comment
+  ].join("\n");
+
+  const params = new URLSearchParams({
+    cc: values.email,
+    subject,
+    body
+  });
+
+  return `mailto:${ownerEmail}?${params.toString()}`;
+}
+
 export function ContactForm({ content }: ContactFormProps) {
   const [values, setValues] = useState<ContactPayload>(initialValues);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<FormStatus>("idle");
   const [message, setMessage] = useState("");
-  const isLoading = status === "loading";
 
   const fields = useMemo(
     () =>
@@ -63,13 +86,11 @@ export function ContactForm({ content }: ContactFormProps) {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
 
-    if (status !== "loading") {
-      setStatus("idle");
-      setMessage("");
-    }
+    setStatus("idle");
+    setMessage("");
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validate(values, content.errors);
     setErrors(nextErrors);
@@ -80,25 +101,18 @@ export function ContactForm({ content }: ContactFormProps) {
       return;
     }
 
-    setStatus("loading");
-    setMessage("");
+    const normalizedValues = {
+      name: values.name.trim(),
+      phone: values.phone.trim(),
+      email: values.email.trim(),
+      comment: values.comment.trim()
+    };
 
-    try {
-      const response = await sendContact({
-        name: values.name.trim(),
-        phone: values.phone.trim(),
-        email: values.email.trim(),
-        comment: values.comment.trim()
-      });
-
-      setValues(initialValues);
-      setErrors({});
-      setStatus("success");
-      setMessage(response.message ?? content.successCopySent);
-    } catch (error) {
-      setStatus("error");
-      setMessage(error instanceof ApiError ? error.message : content.errors.fallback);
-    }
+    window.location.href = buildMailtoUrl(normalizedValues);
+    setValues(initialValues);
+    setErrors({});
+    setStatus("success");
+    setMessage(content.successCopySent);
   }
 
   return (
@@ -119,7 +133,6 @@ export function ContactForm({ content }: ContactFormProps) {
               onChange={(event) => handleChange(field.name, event.target.value)}
               aria-invalid={Boolean(error)}
               aria-describedby={error ? errorId : undefined}
-              disabled={isLoading}
             />
             {error ? (
               <p className="form-field__error" id={errorId}>
@@ -140,7 +153,6 @@ export function ContactForm({ content }: ContactFormProps) {
           onChange={(event) => handleChange("comment", event.target.value)}
           aria-invalid={Boolean(errors.comment)}
           aria-describedby={errors.comment ? "comment-error" : undefined}
-          disabled={isLoading}
         />
         {errors.comment ? (
           <p className="form-field__error" id="comment-error">
@@ -149,17 +161,8 @@ export function ContactForm({ content }: ContactFormProps) {
         ) : null}
       </div>
 
-      <button
-        className="button button--primary contact-form__submit"
-        type="submit"
-        disabled={isLoading}
-        aria-busy={isLoading}
-      >
-        {isLoading ? (
-          <LoaderCircle className="spin" size={18} aria-hidden="true" />
-        ) : (
+      <button className="button button--primary contact-form__submit" type="submit">
         <Send size={18} aria-hidden="true" />
-        )}
         {content.submit}
       </button>
 

@@ -1,12 +1,6 @@
 import request from "supertest";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { app } from "../app.js";
-import { sendContactEmails } from "../services/emailService.js";
-import { AppError } from "../utils/AppError.js";
-
-vi.mock("../services/emailService.js", () => ({
-  sendContactEmails: vi.fn()
-}));
 
 const validPayload = {
   name: "Arthur Dadalian",
@@ -27,16 +21,16 @@ describe("health API", () => {
 });
 
 describe("contact API", () => {
-  beforeEach(() => {
-    vi.mocked(sendContactEmails).mockReset();
-    vi.mocked(sendContactEmails).mockResolvedValue(undefined);
-  });
-
-  it("accepts a valid contact request", async () => {
+  it("returns a mailto URL for a valid contact request", async () => {
     const response = await request(app).post("/api/contact").send(validPayload).expect(200);
 
-    expect(response.body).toEqual({ success: true });
-    expect(sendContactEmails).toHaveBeenCalledWith(validPayload);
+    expect(response.body).toMatchObject({
+      success: true,
+      message: "Email draft is ready."
+    });
+    expect(response.body.mailtoUrl).toContain("mailto:arthurdadalian@gmail.com?");
+    expect(response.body.mailtoUrl).toContain("cc=sender%40example.com");
+    expect(response.body.mailtoUrl).toContain("Portfolio+contact+from+Arthur+Dadalian");
   });
 
   it("returns 400 for invalid contact data", async () => {
@@ -50,7 +44,6 @@ describe("contact API", () => {
     expect(response.body.errors).toHaveProperty("phone");
     expect(response.body.errors).toHaveProperty("email");
     expect(response.body.errors).toHaveProperty("comment");
-    expect(sendContactEmails).not.toHaveBeenCalled();
   });
 
   it("returns 400 for malformed JSON", async () => {
@@ -65,20 +58,6 @@ describe("contact API", () => {
       error: "Request body must be valid JSON.",
       message: "Request body must be valid JSON.",
       code: "INVALID_JSON"
-    });
-    expect(sendContactEmails).not.toHaveBeenCalled();
-  });
-
-  it("returns a clear status when email sending fails", async () => {
-    vi.mocked(sendContactEmails).mockRejectedValueOnce(
-      new AppError(503, "Email service is not configured. Please try again later.")
-    );
-
-    const response = await request(app).post("/api/contact").send(validPayload).expect(503);
-
-    expect(response.body).toMatchObject({
-      success: false,
-      error: "Email service is not configured. Please try again later."
     });
   });
 });

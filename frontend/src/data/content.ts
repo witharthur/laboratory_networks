@@ -200,7 +200,7 @@ export const content: Record<Locale, LocalizedContent> = {
       {
         group: "Backend",
         icon: Server,
-        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Nodemailer"]
+        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Mailto contact"]
       },
       {
         group: "Tools and AI",
@@ -220,7 +220,7 @@ export const content: Record<Locale, LocalizedContent> = {
         title: "Full-stack flow",
         meta: "API / integrations",
         description:
-          "Формы, подключенные к backend endpoints, повторная серверная валидация, безопасные ошибки, email-доставка и API-ответы, удобные для frontend.",
+          "Формы с клиентской и серверной валидацией, безопасные ошибки, email-draft flow и API-ответы, удобные для frontend.",
         icon: Workflow
       },
       {
@@ -241,7 +241,7 @@ export const content: Record<Locale, LocalizedContent> = {
       {
         title: "Backend для продуктов",
         description:
-          "Небольшие надежные Node.js services, REST APIs, email flows, validation, provider integrations и аккуратная обработка ошибок.",
+          "Небольшие надежные Node.js services, REST APIs, contact flows, validation, provider integrations и аккуратная обработка ошибок.",
         icon: Server
       },
       {
@@ -294,9 +294,9 @@ export const content: Record<Locale, LocalizedContent> = {
     cases: [
       {
         title: "Contact flow with email copies",
-        meta: "Express + SMTP email",
+        meta: "Mailto email draft",
         description:
-          "Feedback form валидирует данные, вызывает backend, отправляет owner email, отправляет copy пользователю и понятно обрабатывает ошибки.",
+          "Feedback form валидирует данные и открывает готовое письмо на arthurdadalian@gmail.com с копией на email отправителя.",
         icon: ShieldCheck
       },
       {
@@ -336,7 +336,7 @@ export const content: Record<Locale, LocalizedContent> = {
         fallback: "Сообщение не удалось отправить. Попробуйте позже."
       },
       successCopySent:
-        "Спасибо! Сообщение отправлено Arthur Dadalian. Копия отправлена на ваш email.",
+        "Готово: открылось письмо для Arthur Dadalian с копией на ваш email. Проверьте текст и нажмите Send в почтовом приложении.",
       submit: "Отправить"
     },
     aiHelper: {
@@ -436,7 +436,7 @@ export const content: Record<Locale, LocalizedContent> = {
       {
         group: "Backend",
         icon: Server,
-        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Nodemailer"]
+        items: ["Node.js", "Express", "REST API", "Validation", "Error handling", "Mailto contact"]
       },
       {
         group: "Tools and AI",
@@ -456,7 +456,7 @@ export const content: Record<Locale, LocalizedContent> = {
         title: "Full-stack flow",
         meta: "API / integrations",
         description:
-          "Forms connected to backend endpoints, repeated server validation, safe errors, email delivery, and API responses that are easy to consume.",
+          "Forms with client and server validation, safe errors, an email-draft flow, and API responses that are easy to consume.",
         icon: Workflow
       },
       {
@@ -477,7 +477,7 @@ export const content: Record<Locale, LocalizedContent> = {
       {
         title: "Backend for products",
         description:
-          "Small reliable Node.js services, REST APIs, email flows, validation, provider integrations, and careful error handling.",
+          "Small reliable Node.js services, REST APIs, contact flows, validation, provider integrations, and careful error handling.",
         icon: Server
       },
       {
@@ -530,9 +530,9 @@ export const content: Record<Locale, LocalizedContent> = {
     cases: [
       {
         title: "Contact flow with email copies",
-        meta: "Express + SMTP email",
+        meta: "Mailto email draft",
         description:
-          "A complete feedback form that validates data, calls the backend, sends an owner email, sends a copy to the user, and handles failures clearly.",
+          "A complete feedback form that validates data and opens a ready email to arthurdadalian@gmail.com with the sender copied.",
         icon: ShieldCheck
       },
       {
@@ -571,7 +571,8 @@ export const content: Record<Locale, LocalizedContent> = {
         form: "Please fix the highlighted fields.",
         fallback: "Message could not be sent. Please try again later."
       },
-      successCopySent: "Thanks! Your message has been sent to Arthur. A copy was sent to your email.",
+      successCopySent:
+        "Email draft opened for Arthur with your address in copy. Review it and press Send in your mail app.",
       submit: "Send message"
     },
     aiHelper: {

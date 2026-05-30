@@ -1,23 +1,22 @@
 # Laboratory Networks
 
-Персональная landing page-презентация frontend/full-stack разработчика Arthur Dadalian. Проект сделан как тестовое задание: адаптивный React-интерфейс, Express API, рабочая feedback-форма, отправка писем через Nodemailer SMTP, AI Summary Studio и конфигурация для деплоя на Vercel.
+Персональная landing page-презентация frontend/full-stack разработчика Arthur Dadalian. Проект сделан как тестовое задание: адаптивный React-интерфейс, Express API, рабочая feedback-форма через mailto email draft, AI Summary Studio и конфигурация для деплоя на Vercel.
 
 ## Возможности
 
 - Современная адаптивная landing page с секциями Hero, About, Tech stack, Experience, AI tools, Projects, Contacts и Feedback form.
 - Переключатель языка RU/EN в header; по умолчанию открывается русская версия.
 - Семантическая HTML-структура, доступные поля формы, состояния loading/success/error.
-- Реальная отправка формы на `POST /api/contact`.
-- Два email после успешной отправки: владельцу сайта и копия пользователю.
+- Feedback form открывает готовое письмо на `arthurdadalian@gmail.com` с копией на email отправителя.
 - AI Summary Studio на `POST /api/ai-summary` с OpenAI при наличии ключа и безопасным fallback без ключа.
-- Минимальные backend-тесты для API, валидации и email-сервиса.
+- Минимальные backend-тесты для API и валидации.
 
 ## Стек
 
 - Frontend: React, TypeScript, Vite, SCSS, Lucide React.
 - Backend: Node.js, Express, TypeScript.
 - Validation: Zod на backend и клиентская проверка на frontend.
-- Email: Nodemailer + Gmail SMTP или generic SMTP.
+- Email: browser `mailto:` draft, без SMTP-секретов.
 - AI: OpenAI SDK, Responses API, fallback summary.
 - Quality: TypeScript, ESLint, Vitest, Supertest, production build.
 - Deployment: Vercel, serverless bridge для Express API.
@@ -61,13 +60,6 @@ npm install
 Backend:
 
 ```env
-EMAIL_USER=
-EMAIL_PASS=
-EMAIL_FROM=
-SMTP_HOST=
-SMTP_PORT=587
-SMTP_SECURE=false
-OWNER_EMAIL=arthurdadalian@gmail.com
 CLIENT_URL=http://localhost:5173
 PORT=5000
 OPENAI_API_KEY=
@@ -123,15 +115,12 @@ npm run check
 Форма содержит поля `name`, `phone`, `email`, `comment`.
 
 1. Frontend валидирует обязательные поля, формат email, телефон и длину комментария.
-2. При отправке показывается loading state и вызывается `POST /api/contact`.
-3. Backend повторно валидирует body через Zod.
-4. Nodemailer отправляет письмо владельцу сайта на `OWNER_EMAIL` через Gmail SMTP или generic SMTP. По умолчанию `OWNER_EMAIL=arthurdadalian@gmail.com`.
-5. Затем Nodemailer отправляет подтверждение пользователю на email из формы.
-6. API возвращает `{ "success": true }` при успешной отправке двух писем или `{ "success": false, "error": "message" }` при ошибке.
-7. Frontend показывает success/error state и очищает форму после успешной отправки.
+2. При отправке frontend собирает `mailto:` ссылку на `arthurdadalian@gmail.com`.
+3. Email отправителя добавляется в `cc`, чтобы пользователь получил копию письма после отправки.
+4. В почтовом приложении открывается готовый draft с именем, телефоном, email и комментарием.
+5. Пользователь проверяет текст и нажимает Send в своем почтовом приложении.
 
-Если email-сервис не настроен, API возвращает `503` с безопасным сообщением без раскрытия секретов.
-Для Gmail в `EMAIL_PASS` нужен Google App Password, а не обычный пароль. Email пользователя используется только в `replyTo`, поле `from` берется из `EMAIL_FROM` или `EMAIL_USER`.
+SMTP, Gmail App Password, Resend и другие email-сервисы больше не нужны для feedback form.
 
 ## Как работает AI Summary Studio
 
@@ -154,7 +143,7 @@ Frontend-блок отправляет текст профиля и выбран
 
 - базовая структура монорепозитория;
 - React-компоненты landing page;
-- Express routes и service layer;
+- Express routes и frontend contact flow;
 - responsive layout и состояния интерфейса;
 - черновик документации.
 
@@ -163,7 +152,7 @@ Frontend-блок отправляет текст профиля и выбран
 - TypeScript и build ошибки;
 - корректность API-путей;
 - frontend/backend environment usage;
-- обработка ошибок SMTP/Nodemailer;
+- обработка ошибок contact form;
 - fallback для AI без ключа;
 - client/server validation;
 - доступность labels, aria-атрибутов и disabled/loading states;
@@ -181,25 +170,17 @@ Frontend-блок отправляет текст профиля и выбран
 Production env variables в Vercel:
 
 ```env
-EMAIL_USER=
-EMAIL_PASS=
-EMAIL_FROM=
-SMTP_HOST=
-SMTP_PORT=587
-SMTP_SECURE=false
-OWNER_EMAIL=arthurdadalian@gmail.com
 CLIENT_URL=https://your-vercel-domain.vercel.app
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-`OPENAI_API_KEY` необязателен. `EMAIL_USER` и `EMAIL_PASS` нужны для реальной отправки feedback emails. `OWNER_EMAIL` уже имеет fallback `arthurdadalian@gmail.com`, но его можно явно задать в Vercel. Для Gmail в production `EMAIL_PASS` должен быть Google App Password. Если используется другой SMTP-провайдер, задайте `SMTP_HOST`, `SMTP_PORT` и при необходимости `SMTP_SECURE`.
+`OPENAI_API_KEY` необязателен. Для feedback form больше не нужны email-секреты в Vercel, потому что форма открывает `mailto:` draft в почтовом приложении пользователя.
 
 ## Ограничения
 
-- Без настроенного SMTP feedback API вернет `503`, потому что реальная отправка email невозможна.
 - Без валидного OpenAI key AI endpoint работает в fallback-режиме.
-- В проекте нет базы данных: заявки отправляются email-ом и не сохраняются.
+- В проекте нет базы данных: заявки открываются как email draft и не сохраняются.
 
 ## Links
 

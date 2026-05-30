@@ -13,6 +13,10 @@ export type ApiSuccess = {
   message?: string;
 };
 
+export type ContactResponse = ApiSuccess & {
+  mailtoUrl: string;
+};
+
 export type AiSummaryResponse = ApiSuccess & {
   summary: string;
   source: "openai" | "fallback";
@@ -77,7 +81,7 @@ async function postJson<TResponse, TPayload>(path: string, payload: TPayload): P
 }
 
 export function sendContact(payload: ContactPayload) {
-  return postJson<ApiSuccess, ContactPayload>("/api/contact", payload);
+  return postJson<ContactResponse, ContactPayload>("/api/contact", payload);
 }
 
 export function generateAiSummary(payload: AiSummaryPayload) {

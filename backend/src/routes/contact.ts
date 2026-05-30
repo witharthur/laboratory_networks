@@ -1,11 +1,34 @@
 import { Router } from "express";
-import { sendContactEmails } from "../services/emailService.js";
-import { AppError } from "../utils/AppError.js";
+import type { ContactRequest } from "../utils/validation.js";
 import { contactSchema, formatZodErrors } from "../utils/validation.js";
 
 export const contactRouter = Router();
 
-contactRouter.post("/", async (req, res, next) => {
+const ownerEmail = "arthurdadalian@gmail.com";
+
+function buildMailtoUrl(data: ContactRequest) {
+  const subject = `Portfolio contact from ${data.name}`;
+  const body = [
+    "New contact request",
+    "",
+    `Name: ${data.name}`,
+    `Phone: ${data.phone}`,
+    `Email: ${data.email}`,
+    "",
+    "Comment:",
+    data.comment
+  ].join("\n");
+
+  const params = new URLSearchParams({
+    cc: data.email,
+    subject,
+    body
+  });
+
+  return `mailto:${ownerEmail}?${params.toString()}`;
+}
+
+contactRouter.post("/", (req, res) => {
   const parsed = contactSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -17,20 +40,9 @@ contactRouter.post("/", async (req, res, next) => {
     return;
   }
 
-  try {
-    await sendContactEmails(parsed.data);
-    res.status(200).json({
-      success: true
-    });
-  } catch (error) {
-    if (error instanceof AppError) {
-      res.status(error.statusCode).json({
-        success: false,
-        error: error.message
-      });
-      return;
-    }
-
-    next(error);
-  }
+  res.status(200).json({
+    success: true,
+    mailtoUrl: buildMailtoUrl(parsed.data),
+    message: "Email draft is ready."
+  });
 });
